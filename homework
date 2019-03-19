@@ -1,0 +1,21 @@
+作业：
+    1.中间件
+        最多几个方法？
+            process_request、
+            process_view、
+            process_response、
+            process_exception、
+            process_render_template
+        用中间件做过什么？
+            利用它实现csrf_token，利用process_view中处理或装饰器
+                为什么用process_view而不用process_request?
+                    因为用process_request的话如果用的是装饰器这需要到达路由匹配到函数才能访问的装饰器
+                    而process_view还没有路由匹配到函数就处理了
+    2.csrf
+    3.CBV
+    4.restful
+        3.1、10条规范
+        3.2、自己的认识
+    5.djangorestframework
+        5.1、如何验证（基于数据库实现用户认证）
+        5.2、源码流程（面向对象回顾流程）
