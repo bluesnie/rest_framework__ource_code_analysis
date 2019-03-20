@@ -123,3 +123,24 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+REST_FRAMEWORK = {
+    # 全局使用的认证类
+    "DEFAULT_AUTHENTICATION_CLASSES": ['app01.utils.auth.Authentication', ],
+    # 匿名用户设置
+    # "UNAUTHENTICATED_USER": lambda :"匿名用户"
+    "UNAUTHENTICATED_USER": None,           #推荐使用，匿名，因为request.user = None
+    "UNAUTHENTICATED_TOKEN": None,          # 匿名，因为request.auth = None
+
+    # 全局权限类
+    "DEFAULT_PERMISSION_CLASSES":['app01.utils.permission.SvipPermission',],
+
+    # 版本配置类
+    "DEFAULT_VERSIONING_CLASS":'rest_framework.versioning.URLPathVersioning',
+    "DEFAULT_VERSION": 'v1',         # 默认版本
+    "ALLOWED_VERSIONS": ['v1', 'v2'],  # 允许版本
+    "VERSION_PARAM": 'version',      # 版本参数
+
+    # 解析器配置
+    "DEFAULT_PARSER_CLASSES":['rest_framework.parsers.JSONParser', 'rest_framework.parsers.FormParser'],
+}

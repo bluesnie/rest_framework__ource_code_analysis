@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/rest_framework__ource_code_analysis.iml" filepath="$PROJECT_DIR$/.idea/rest_framework__ource_code_analysis.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/rest_framework__source_code_analysis.iml" filepath="$PROJECT_DIR$/.idea/rest_framework__source_code_analysis.iml" />
     </modules>
   </component>
 </project>

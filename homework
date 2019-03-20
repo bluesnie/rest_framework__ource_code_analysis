@@ -1,3 +1,17 @@
+Django生命周期
+    a.wsgi
+        wsgi：协议
+        wsgiref:是python实现wsgi协议的一个模块，模块的本质：一个socket服务端(django)
+        werkzeug:是python实现wsgi协议的一个模块，模块的本质：一个socket服务端(Flask框架)
+        tornado:是python实现wsgi协议的一个模块，模块的本质：一个socket服务端(Flask框架)
+        uwsgi:是实现了wsgi协议的一个模块，模块本质：一个socket服务器
+
+Django生命周期:(rest_framework)
+        wsgi->中间件->路由匹配->反射视图方法
+
+
+
+
 作业：
     1.中间件
         最多几个方法？
@@ -11,6 +25,15 @@
                 为什么用process_view而不用process_request?
                     因为用process_request的话如果用的是装饰器这需要到达路由匹配到函数才能访问的装饰器
                     而process_view还没有路由匹配到函数就处理了
+            --基于角色的权限控制
+            --用户认证
+            --csrf(说原理）
+            --session(说原理）
+            --黑名单
+            --日志记录
+
+
+
     2.csrf
     3.CBV
     4.restful
@@ -19,3 +42,151 @@
     5.djangorestframework
         5.1、如何验证（基于数据库实现用户认证）
         5.2、源码流程（面向对象回顾流程）
+
+
+
+
+    认证的梳理：
+        1.使用
+            1.1、创建类：继承BaseAuthentication：实现：authenticate这个方法
+            1.2、返回值：
+                1.2.1、None，下一个认证执行
+                1.2.3、抛出异常，raise exceptions.AuthenticationFailed('用户认证失败')
+                1.2.3、返回元组，（元素1，元素2） 分别赋值给request.user，request.auth
+            1.3、局部使用：
+                需要认证的View:加上authentication_classes = [Authentication,]
+            1.4、全局使用：（使用路径）
+                REST_FRAMEWORK = {
+                    # 全局使用的认证类
+                    "authentication_classes": ['app01.utils.auth.Authentication'],
+                    # 匿名用户设置
+                    # "UNAUTHENTICATED_USER": lambda :"匿名用户"
+                    "UNAUTHENTICATED_USER": None,           #推荐使用，匿名，因为request.user = None
+                    "UNAUTHENTICATED_TOKEN": None,          # 匿名，因为request.auth = None
+                }
+        2.源码流程
+            dispath->封装request->获取定义的认证类（全局/局部）,通过列表生成器创建对象->initial->perform_authentication->request.user
+
+
+二、权限
+    问题：不同的视图不同的权限
+    1.基本使用
+        class MyPermission(object):
+            def has_permission(self, request, view):
+                print(request.user)
+                if request.user.user_type != 1:
+                    return False
+                return True
+        class OrderView(APIView):
+            # authentication_classes = [Authentication,]
+            permission_classes = [MyPermission,]
+
+            def get(self, request, *args, **kwargs):
+                ret = {'code': 10000,'msg': None, 'data':None}
+                try:
+                    ret['data'] = ORDER_DICT
+                except Exception as e:
+                    pass
+                return JsonResponse(ret)
+    2.源码流程
+        。。。
+
+    3.权限梳理
+        3.1、基本使用
+            3.1.1、类，必须继承：BasePermission，必须实现：has_permission方法
+
+                from rest_framework.permissions import BasePermission
+
+                class SvipPermission(BasePermission):
+                    message = "必须是SVIP才能访问"
+
+                    def has_permission(self, request, view):
+                        # print(request.user)
+                        if request.user.user_type != 3:
+                            return False
+                        return True
+            3.1.2、返回值，True,有权访问，False,无权访问
+            3.1.3、局部使用：
+                需要认证的View:加上permission_classes = [SvipPermission,]
+            3.1.4、全局使用：（使用路径）
+                REST_FRAMEWORK = {
+                "DEFAULT_PERMISSION_CLASSES":['app01.utils.permission.SvipPermission',],
+                }
+        3.2、源码流程
+
+三、版本
+    1.URL中通过GET传参数
+    2.在URL中传参（推荐使用,正则表达式）
+
+四、解析器
+    1.前戏：django:request.POST/ request.body
+        1.1、请求头要求：
+            Content-Type:application/x-www-form-urlencoded
+            PS：如果请求头中的Content-Type:application/x-www-form-urlencoded，request.POST中才有值（去request.body中解析数据）
+        1.2、数据格式要求：
+            name=alex&age=18&gender=男
+        如：
+            a.form表单提交：默认带的是Content-Type:application/x-www-form-urlencoded
+            b.ajax提交：
+
+                $.ajax({
+                    url:...
+                    type:POST
+                    data:{'name':'alex','age':18}    # 内部转化成name=alex&age=18&gender=男，携带Content-Type:application/x-www-form-urlencoded提交
+                    ...
+                })
+                情况一：
+                $.ajax({
+                    url:...
+                    type:POST
+                    headres:{'Content-Type':'application/json'}
+                    data:{'name':'alex','age':18}   # 内部转化成name=alex&age=18&gender=男
+                    ...                             # body有值，POST没有
+                })
+                情况二：
+                $.ajax({
+                    url:...
+                    type:POST
+                    headres:{'Content-Type':'application/json'}
+                    data:JSON.stringfy({'name':'alex','age':18})    # {'name':'alex','age':18}
+                    ...                                             # body有值，POST没有，但是可以用json.loads(request.body)得到
+                })
+
+    2.rest-framework解析器，对请求体进行解析
+        2.1、全局配置
+        2.2、使用
+            class ParserView(APIView):
+            """
+            JSONParser:表示只能解析content-type:application/json头,(最常用)
+            FormParser:表示只能解析content-type:application/x-www-form-urlencoded头
+            """
+
+            def post(self, request, *args, **kwargs):
+                """
+                允许用户发送JSON格式数据
+                    a.content-type:application/json
+                    b.{'name':'alex','age':18}
+                :param request:
+                :param args:
+                :param kwargs:
+                :return:
+                """
+                # 获取解析后的结果，用了request.data才去解析
+                """
+                    1.获取用户请求
+                    2.获取用户请求体
+                    3.根据用户请求体和parser_classes = [JSONParser,]中支持的请求头进行比较
+                    4.JSONParser对象处理请求体
+                    5.request.data来触发的
+                """
+                print(request.data)
+
+                return  HttpResponse('ParserView')
+    3.源码流程&本质：
+        3.1、本质
+            请求体
+            状态码
+            请求方法
+        3.2、源码流程
+            -dispath:request封装
+            -request.data
