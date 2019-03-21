@@ -13,7 +13,7 @@ from rest_framework.request import Request
 from rest_framework.permissions import BasePermission
 from rest_framework.versioning import QueryParameterVersioning, URLPathVersioning,NamespaceVersioning
 from app01.utils.permission import VipPermission
-from app01.models import UserInfo, UserToken
+from app01.models import UserInfo, UserToken, Role, UserGroup
 
 
 # Create your views here.
@@ -211,6 +211,61 @@ class OrderView(APIView):
         return JsonResponse(ret)
 
 
+# 用户序列化
+from rest_framework import serializers
+
+# 方式一：继承serializers.Serializer
+# class UserInfoSerializer(serializers.Serializer):
+#
+#     username = serializers.CharField()
+#     password = serializers.CharField()
+#     # source 属性是对应model的字段，所以这里可以自定义名称,当一个表有choice,ForeignKey时都可以用source指定
+#     # xxx = serializers.CharField(source="get_user_type_display")
+#     user_type = serializers.CharField(source="get_user_type_display") # row.get_user_type_display
+#     gorup = serializers.CharField(source="group.name")
+#     # ManyToMany则不适合
+#     # roles = serializers.CharField(source="roles.all")
+#
+#     # 自定义显示，上面的choice和ForeignKey也可以这样。
+#     roles = serializers.SerializerMethodField() # 自定义显示
+#
+#     def get_roles(self, row):
+#         role_obj_list = row.roles.all()
+#         ret = []
+#         for item in role_obj_list:
+#             ret.append({'id':item.id, 'name':item.name})
+#         return ret
+
+# 方式二：继承serializers.ModelSerializer
+# class UserInfoSerializer(serializers.ModelSerializer):
+#     xxx = serializers.CharField(source="get_user_type_display")
+#     roles = serializers.SerializerMethodField()  # 自定义显示
+#     # gorup = serializers.CharField(source="group.name")
+#
+#     class Meta:
+#         model = UserInfo
+#         # fields = "__all__"
+#         fields = ['id', 'username', 'password', 'xxx', 'roles', 'group']
+#
+#     def get_roles(self, row):
+#         role_obj_list = row.roles.all()
+#         ret = []
+#         for item in role_obj_list:
+#             ret.append({'id':item.id, 'name':item.name})
+#         return ret
+
+# 方式三
+
+
+class UserInfoSerializer(serializers.ModelSerializer):
+    group = serializers.HyperlinkedIdentityField(view_name='group', lookup_field='group_id', lookup_url_kwarg='pk')
+    class Meta:
+        model = UserInfo
+        fields = "__all__"
+        # fields = ['id', 'username', 'password', 'roles', 'group']
+        depth = 1  # 官方建议0~10，尽量不要超过3层
+
+
 class UserInfoView(APIView):
     """用户中心（普通用户，vip）"""
     # authentication_classes = [Authentication, ]
@@ -218,7 +273,25 @@ class UserInfoView(APIView):
     permission_classes = [VipPermission, ]
 
     def get(self, request, *args, **kwargs):
-        return HttpResponse('用户信息')
+
+        users = UserInfo.objects.all()
+
+        # 对象（单个结果），Serializer类处理；self.to_representation
+        # QuerySet，ListSerializer类处理；self.to_representation
+        # 1.实例化，一般将数据封装到对象：__new__,__init__
+        """
+        many=True,接下来执行ListSerializer对象的构造方法
+        many=False,接下来执行UserInfoSerializer对象的构造方法
+        
+        """
+        ser = UserInfoSerializer(instance=users, many=True, context={'request': request})
+        # 2.调用对象的data属性
+        # ListSerializer
+        # UserInfoSerializer
+
+        # print(ser.data)
+        ret = json.dumps(ser.data, ensure_ascii=False)
+        return HttpResponse(ret)
 
 
 # 解析器
@@ -255,4 +328,97 @@ class ParserView(APIView):
 
         return  HttpResponse('ParserView')
 
+# 序列化
 
+
+from rest_framework import serializers
+
+
+class RolesSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    name = serializers.CharField()
+
+
+class RolesView(APIView):
+
+    def get(self, request, *args, **kwargs):
+
+        # 方式一：
+        # roles = Role.objects.all().values('id', 'name')
+        # roles = list(roles)
+        # ret = json.dumps(roles, ensure_ascii=False)
+
+        # 方式二：
+        roles = Role.objects.all()
+
+        # 多条数据加many属性
+        ser = RolesSerializer(instance=roles, many=True)
+
+        # 单个数据many属性为False
+        # ser = Role.objects.all().first()
+        # ser = RolesSerializer(instance=roles, many=False)
+        # ser.data已经是转换完成的结果
+
+        ret = json.dumps(ser.data, ensure_ascii=False)
+        return HttpResponse(ret)
+
+
+# 使用ModelSerializer类
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserGroup
+        fields = "__all__"
+
+
+class GroupView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, *args, **kwargs):
+        pk = kwargs.get('pk')
+        obj = UserGroup.objects.filter(id=pk).first()
+
+        ser = GroupSerializer(instance=obj, many=False)
+        ret = json.dumps(ser.data, ensure_ascii=False)
+        return HttpResponse(ret)
+
+
+# 序列化数据验证
+# 自定义数据校验类
+class XXXValidator(object):
+    def __init__(self, base):
+        self.base = base
+
+    def __call__(self, value):
+        if not value.startswith(self.base):
+            message = '名称必须以 %s 开头' % self.base
+            raise serializers.ValidationError(message)
+
+
+class UserGroupSerializer(serializers.Serializer):
+    name = serializers.CharField(error_messages={'required': '姓名不能为空'}, validators=[XXXValidator('nzb'),])
+
+    def validate_name(self, value):
+        from rest_framework import exceptions
+        # 自定义验证规则，然后抛出异常
+        raise exceptions.ValidationError('看你不顺眼')
+        # print(value)
+        return value
+
+
+class UserGroupView(APIView):
+
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request, *args, **kwargs):
+
+        # print(request.data)
+        ser = UserGroupSerializer(data=request.data)
+        if ser.is_valid():
+            print(ser.validated_data)
+            # 单独取某些
+            print(ser.validated_data['name'])
+        else:
+            print(ser.errors)
+        return HttpResponse('提交数据')

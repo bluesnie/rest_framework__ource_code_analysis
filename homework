@@ -44,7 +44,7 @@ Django生命周期:(rest_framework)
         5.2、源码流程（面向对象回顾流程）
 
 
-
+一、认证
 
     认证的梳理：
         1.使用
@@ -190,3 +190,121 @@ Django生命周期:(rest_framework)
         3.2、源码流程
             -dispath:request封装
             -request.data
+
+五、序列化
+    （1）序列化：
+        1.写类，继承于Serializer(自定义生成字段)、ModelSerializer(自动生成字段，也是继承于Serializer)
+        2.字段：
+            2.1、name=serializers.CharField(source="xxx.xx.xx")
+            2.2、roles = serializers.SerializerMethodField()  # 自定义显示
+
+                    class UserInfoSerializer(serializers.ModelSerializer):
+                        roles = serializers.SerializerMethodField()  # 字段自定义显示
+                        class Meta:
+                            model = UserInfo
+                            # fields = "__all__"
+                            fields = ['id', 'username', 'password', 'xxx', 'roles', 'group']
+
+                        def get_roles(self, row):
+                            role_obj_list = row.roles.all()
+                            ret = []
+                            for item in role_obj_list:
+                                ret.append({'id':item.id, 'name':item.name})
+                            return ret
+            2.3、自定义类不常用
+        3.自动化序列化连表
+            class UserInfoSerializer(serializers.ModelSerializer):
+                class Meta:
+                    model = UserInfo
+                    fields = "__all__"
+                    # fields = ['id', 'username', 'password', 'xxx', 'roles', 'group']
+                    depth = 1  # 官方建议0~10，尽量不要超过3层
+        4.生成链接
+            class UserInfoSerializer(serializers.ModelSerializer):
+                group = serializers.HyperlinkedIdentityField(view_name='group', lookup_field='group_id', lookup_url_kwarg='pk')
+
+                class Meta:
+                    model = UserInfo
+                    fields = "__all__"
+                    fields = ['id', 'username', 'password', 'roles', 'group']
+                    depth = 0  # 官方建议0~10，尽量不要超过3层
+
+            class UserInfoView(APIView):
+                """用户中心（普通用户，vip）"""
+                # authentication_classes = [Authentication, ]
+                # 当前permission_classes存在就不会去取配置文件里的设置
+                permission_classes = [VipPermission, ]
+
+                def get(self, request, *args, **kwargs):
+
+                    users = UserInfo.objects.all()
+                    ser = UserInfoSerializer(instance=users, many=True, context={'request': request})
+                    # print(ser.data)
+                    ret = json.dumps(ser.data, ensure_ascii=False)
+                    return HttpResponse(ret)
+        5.源码流程
+            对象，Serializer类处理
+            QuerySet，ListSerializer类处理
+            # ser.data入口
+    (2)请求数据校验
+        class XXXValidator(object):
+            def __init__(self, base):
+                self.base = base
+
+            def __call__(self, value):
+                if not value.startswith(self.base):
+                    message = '名称必须以 %s 开头' % self.base
+                    raise serializers.ValidationError(message)
+
+        class UserGroupSerializer(serializers.Serializer):
+            name = serializers.CharField(error_messages={'required': '姓名不能为空'}, validators=[XXXValidator('nzb'),])
+
+        class UserGroupView(APIView):
+
+            authentication_classes = []
+            permission_classes = []
+
+            def post(self, request, *args, **kwargs):
+
+                # print(request.data)
+                ser = UserGroupSerializer(data=request.data)
+                if ser.is_valid():
+                    print(ser.validated_data)
+                    # 单独取某些
+                    print(ser.validated_data['name'])
+                else:
+                    print(ser.errors)
+                return HttpResponse('提交数据')
+
+六、分页
+    数据量大时，怎么规避，1、只显示200页，2、只有上一页和下一页
+
+七、视图
+
+八、路由
+
+九、渲染器
+
+十、django组件：contenttype
+
+
+__init__和__new__的区别：
+__new__：是返回对象
+__init__：是__new__返回的对象的构造方法
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
