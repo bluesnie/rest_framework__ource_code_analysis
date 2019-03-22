@@ -278,15 +278,194 @@ Django生命周期:(rest_framework)
 
 六、分页
     数据量大时，怎么规避，1、只显示200页，2、只有上一页和下一页
+    1.分页，看第几页，每页显示n条数据；
+    2.分页，在n个位置，向后查看n条数据；
+    3.加密分页，只能看上一页和下一页。
+    
+         第一种分页
+         class MyPagination(PageNumberPagination):
+             # 自定义分页类
+             page_size = 2
+             page_size_query_param = 'size'
+             max_page_size = 5
+        
+        
+         第二种分页
+         class MyPagination(LimitOffsetPagination):
+             # 自定义分页类
+             page_size = 2
+             limit_query_param = 'limit'
+             offset_query_param = 'offset'
+             max_limit = 5
+        
+         第三种分页
+        class MyPagination(CursorPagination):
+            # 自定义分页类
+            page_size = 2
+            cursor_query_param = 'cursor'
+            max_limit = 5
+            ordering = 'id'
+            page_size_query_param = None
+            max_page_size = None
+        
+        
+        class Pager1View(APIView):
+            authentication_classes = []
+            permission_classes = []
+        
+            def get(self, request, *args, **kwargs):
+        
+                # 获取所以数据
+                roles = Role.objects.all()
+        
+                # ret = json.dumps(ser.data, ensure_ascii=False)
+                # return HttpResponse(ret)
+        
+                # rest_framework 渲染
+                # 创建分页对象
+                pg = MyPagination()
+                # 在数据中获取分页的数据
+                pager_roles = pg.paginate_queryset(queryset=roles, request=request, view=self)
+                # 对数据进行序列化
+                ser = PagerSerializer(instance=pager_roles, many=True)
+        
+                # return Response(ser.data)
+                # 生成上一页下一页链接(加密分页很有用)
+                return pg.get_paginated_response(ser.data)
+    总结：
+        1.数据量大，如何做分页？
+            1.1、数据库性能相关转到rest_framework是怎么处理
+            1.2、
 
 七、视图
+    1.过去
+        class XxxView(View)：
+            pass
+    2.现在
+        class XxxView(APIView): APIView继承于VIew
+            pass
+    3.没什么用的类：GenericAPIView（不使用）
+        from app01.utils.serializers.pager import PagerSerializer
+        from rest_framework.generics import GenericAPIView
+        
+        class View1View(GenericAPIView):
+            queryset = Role.objects.all()
+            serializer_class = PagerSerializer
+            pagination_class = PageNumberPagination
+            authentication_classes = []
+            permission_classes = []
+        
+            def get(self, request, *args, **kwargs):
+        
+                # 获取数据
+                roles = self.get_queryset() # Role.objects.all()
+                # 分页 [1,100]
+                pager_roles = self.paginate_queryset(roles)
+                # 序列化
+                ser = self.get_serializer(instance=pager_roles, many=True)
+        
+                return Response(ser.data)
+               
+    4.GenericViewSet(ViewSetMixin, generics.GenericAPIView):     
+        路由：
+            re_path('(?P<version>[v1|v2]+)/v1/', views.View1View.as_view({'get': 'list'}), name='view1'),
+
+        视图：
+            from app01.utils.serializers.pager import PagerSerializer
+            from rest_framework.viewsets import GenericViewSet
+            
+            
+            class View1View(GenericViewSet):
+                queryset = Role.objects.all()
+                serializer_class = PagerSerializer
+                pagination_class = PageNumberPagination
+                authentication_classes = []
+                permission_classes = []
+            
+                def list(self, request, *args, **kwargs):
+            
+                    # 获取数据
+                    roles = self.get_queryset() # Role.objects.all()
+                    # 分页 [1,100]
+                    pager_roles = self.paginate_queryset(roles)
+                    # 序列化
+                    ser = self.get_serializer(instance=pager_roles, many=True)
+            
+                    return Response(ser.data)       
+    5.ModelViewSet(最强大)
+        路由：
+            re_path('(?P<version>[v1|v2]+)/v1/$', views.View1View.as_view({'get': 'list', 'post':'create'}), name='view1'),
+            re_path('(?P<version>[v1|v2]+)/v1/(?P<pk>\d+)', views.View1View.as_view({'get': 'retrieve','delete':'destroy','put': 'update','patch': 'partial_update'}), name='view1'),
+        视图：
+            from app01.utils.serializers.pager import PagerSerializer
+            from rest_framework.viewsets import GenericViewSet, ModelViewSet
+            from rest_framework.mixins import ListModelMixin, CreateModelMixin
+           
+            # class View1View(ListModelMixin,GenericViewSet,CreateModelMixin):
+            class View1View(ModelViewSet):
+                queryset = Role.objects.all()
+                serializer_class = PagerSerializer
+                pagination_class = PageNumberPagination
+                authentication_classes = []
+                permission_classes = []        
+                
+            PS:class View1View(CreateModelMixin):
+    6.总结：
+        6.1、增删改查：ModelViewSet
+        6.2、增删：CreateModelMixin，DestroyModelMixin，GenericViewSet
+        6.4、复杂逻辑：GenericViewSet 或 APIView
+        
+        PS：权限：
+            GenericAPIView.get_object
+                check_object_permissions
+                    has_object_permission
 
 八、路由
+    1.
+        re_path('(?P<version>[v1|v2]+)/auth/', views.AuthView.as_view(), name='auth'),
+    2.
+        re_path('(?P<version>[v1|v2]+)/v1/$', views.View1View.as_view({'get': 'list', 'post':'create'}), name='view1'),
+    3.
+        # http://127.0.0.1:8000/api01/v1/v1/
+        re_path('(?P<version>[v1|v2]+)/v1/$', views.View1View.as_view({'get': 'list', 'post':'create'}), name='view1'),
+        # http://127.0.0.1:8000/api01/v1/v1.json
+        re_path('(?P<version>[v1|v2]+)/v1\.(?P<format>\w+)$', views.View1View.as_view({'get': 'list', 'post':'create'}), name='view1'),
+        re_path('(?P<version>[v1|v2]+)/v1/(?P<pk>\d+)$', views.View1View.as_view({'get': 'retrieve', 'delete':'destroy', 'put': 'update', 'patch': 'partial_update'}), name='view1'),
+        re_path('(?P<version>[v1|v2]+)/v1/(?P<pk>\d+)\.(?P<format>\w+)', views.View1View.as_view({'get': 'retrieve','delete':'destroy','put': 'update','patch': 'partial_update'}), name='view1'),
+    4.
+        from app01 import views
+        from rest_framework import routers
+        # rest_framework路由
+        router = routers.DefaultRouter()
+        router.register(r'xxx', views.View1View)
+        router.register(r'rt', views.View1View)
+        urlpatterns = [
+            # rest_framework路由
+            re_path('(?P<version>[v1|v2]+)/', include(router.urls))
+        ]
+    
+    
+    
 
 九、渲染器
+    from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer, AdminRenderer, HTMLFormRenderer
+    # class View1View(ListModelMixin,GenericViewSet,CreateModelMixin):
+    class View1View(ModelViewSet):
+        # 渲染器,使用JSONRenderer就行，BrowsableAPIRenderer只是界面好看
+        # renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
+        authentication_classes = []
+        permission_classes = []
+        queryset = Role.objects.all()
+        serializer_class = PagerSerializer
+        pagination_class = PageNumberPagination
+    全局配置：
+        'DEFAULT_RENDERER_CLASSES':['rest_framework.renderers.JSONRenderer','rest_framework.renderers.BrowsableAPIRenderer']
+
 
 十、django组件：contenttype
 
+
+十一、理清视图继承流程
 
 __init__和__new__的区别：
 __new__：是返回对象

@@ -422,3 +422,134 @@ class UserGroupView(APIView):
         else:
             print(ser.errors)
         return HttpResponse('提交数据')
+
+
+#分页
+
+from app01.utils.serializers.pager import PagerSerializer
+from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination, CursorPagination
+
+# 第一种分页
+# class MyPagination(PageNumberPagination):
+#     # 自定义分页类
+#     page_size = 2
+#     page_size_query_param = 'size'
+#     max_page_size = 5
+
+
+# 第二种分页
+# class MyPagination(LimitOffsetPagination):
+#     # 自定义分页类
+#     page_size = 2
+#     limit_query_param = 'limit'
+#     offset_query_param = 'offset'
+#     max_limit = 5
+
+# 第三种分页
+class MyPagination(CursorPagination):
+    # 自定义分页类
+    page_size = 2
+    cursor_query_param = 'cursor'
+    max_limit = 5
+    ordering = 'id'
+    page_size_query_param = None
+    max_page_size = None
+
+
+class Pager1View(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, *args, **kwargs):
+
+        # 获取所以数据
+        roles = Role.objects.all()
+
+        # ret = json.dumps(ser.data, ensure_ascii=False)
+        # return HttpResponse(ret)
+
+        # rest_framework 渲染
+        # 创建分页对象
+        pg = MyPagination()
+        # 在数据中获取分页的数据
+        pager_roles = pg.paginate_queryset(queryset=roles, request=request, view=self)
+        # 对数据进行序列化
+        ser = PagerSerializer(instance=pager_roles, many=True)
+
+        # return Response(ser.data)
+        # 生成上一页下一页链接(加密分页很有用)
+        return pg.get_paginated_response(ser.data)
+
+
+# 第三种视图
+# from app01.utils.serializers.pager import PagerSerializer
+# from rest_framework.generics import GenericAPIView
+#
+#
+# class View1View(GenericAPIView):
+#     queryset = Role.objects.all()
+#     serializer_class = PagerSerializer
+#     pagination_class = PageNumberPagination
+#     authentication_classes = []
+#     permission_classes = []
+#
+#     def get(self, request, *args, **kwargs):
+#
+#         # 获取数据
+#         roles = self.get_queryset() # Role.objects.all()
+#         # 分页 [1,100]
+#         pager_roles = self.paginate_queryset(roles)
+#         # 序列化
+#         ser = self.get_serializer(instance=pager_roles, many=True)
+#
+#         return Response(ser.data)
+
+
+# 第四种视图
+# from app01.utils.serializers.pager import PagerSerializer
+# from rest_framework.viewsets import GenericViewSet
+#
+#
+# class View1View(GenericViewSet):
+#     queryset = Role.objects.all()
+#     serializer_class = PagerSerializer
+#     pagination_class = PageNumberPagination
+#     authentication_classes = []
+#     permission_classes = []
+#
+#     def list(self, request, *args, **kwargs):
+#
+#         # 获取数据
+#         roles = self.get_queryset() # Role.objects.all()
+#         # 分页 [1,100]
+#         pager_roles = self.paginate_queryset(roles)
+#         # 序列化
+#         ser = self.get_serializer(instance=pager_roles, many=True)
+#
+#         return Response(ser.data)
+
+
+# 第五种视图
+from app01.utils.serializers.pager import PagerSerializer
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework.mixins import ListModelMixin, CreateModelMixin
+
+# 渲染器
+
+from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer, AdminRenderer, HTMLFormRenderer
+
+# class View1View(ListModelMixin,GenericViewSet,CreateModelMixin):
+
+
+class View1View(ModelViewSet):
+    # 渲染器,使用JSONRenderer就行，BrowsableAPIRenderer只是界面好看
+    # renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
+
+    authentication_classes = []
+    permission_classes = []
+
+    queryset = Role.objects.all()
+    serializer_class = PagerSerializer
+    pagination_class = PageNumberPagination
+

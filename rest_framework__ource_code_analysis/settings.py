@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'app01',
-    'rest_framework'
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -144,4 +144,12 @@ REST_FRAMEWORK = {
 
     # 解析器配置
     "DEFAULT_PARSER_CLASSES":['rest_framework.parsers.JSONParser', 'rest_framework.parsers.FormParser'],
+
+    # 分页
+    "PAGE_SIZE":2,
+
+    # 渲染器
+    'DEFAULT_RENDERER_CLASSES':['rest_framework.renderers.JSONRenderer',
+                                'rest_framework.renderers.BrowsableAPIRenderer']
+
 }
