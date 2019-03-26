@@ -1,4 +1,4 @@
-Django生命周期
+## Django生命周期
     a.wsgi
         wsgi：协议
         wsgiref:是python实现wsgi协议的一个模块，模块的本质：一个socket服务端(django)
@@ -6,85 +6,78 @@ Django生命周期
         tornado:是python实现wsgi协议的一个模块，模块的本质：一个socket服务端(Flask框架)
         uwsgi:是实现了wsgi协议的一个模块，模块本质：一个socket服务器
 
-Django生命周期:(rest_framework)
-        wsgi->中间件->路由匹配->反射视图方法
-
-
-
-
-作业：
-    1.中间件
-        最多几个方法？
-            process_request、
-            process_view、
-            process_response、
-            process_exception、
-            process_render_template
-        用中间件做过什么？
-            利用它实现csrf_token，利用process_view中处理或装饰器
-                为什么用process_view而不用process_request?
-                    因为用process_request的话如果用的是装饰器这需要到达路由匹配到函数才能访问的装饰器
-                    而process_view还没有路由匹配到函数就处理了
-            --基于角色的权限控制
-            --用户认证
-            --csrf(说原理）
-            --session(说原理）
-            --黑名单
-            --日志记录
-
-
-
-    2.csrf
-    3.CBV
-    4.restful
+## Django生命周期:(rest_framework)
+    CBV:wsgi->中间件->路由匹配->反射视图方法
+    
+## Django的rest_framework：
+### 中间件
+    1.最多几个方法：
+        process_request；
+        process_view；
+        process_response；
+        process_exception；
+        process_render_template；
+    2.用中间件做过什么：
+        --利用它实现csrf_token，利用process_view中处理或装饰器
+            2.1、为什么用process_view而不用process_request?
+                因为用process_request的话如果用的是装饰器这需要到达路由匹配到函数才能访问的装饰器，而process_view还没有路由匹配到函数就处理了
+        --基于角色的权限控制
+        --用户认证
+        --csrf(说原理）
+        --session(说原理）
+        --黑名单
+        --日志记录
+    3.csrf
+    4.CBV
+    5.restful
         3.1、10条规范
         3.2、自己的认识
-    5.djangorestframework
+    6.djangorestframework
         5.1、如何验证（基于数据库实现用户认证）
         5.2、源码流程（面向对象回顾流程）
 
+## Django-Rest-framework
 
-一、认证
-
-    认证的梳理：
-        1.使用
-            1.1、创建类：继承BaseAuthentication：实现：authenticate这个方法
-            1.2、返回值：
-                1.2.1、None，下一个认证执行
-                1.2.3、抛出异常，raise exceptions.AuthenticationFailed('用户认证失败')
-                1.2.3、返回元组，（元素1，元素2） 分别赋值给request.user，request.auth
-            1.3、局部使用：
-                需要认证的View:加上authentication_classes = [Authentication,]
-            1.4、全局使用：（使用路径）
-                REST_FRAMEWORK = {
-                    # 全局使用的认证类
-                    "authentication_classes": ['app01.utils.auth.Authentication'],
-                    # 匿名用户设置
-                    # "UNAUTHENTICATED_USER": lambda :"匿名用户"
-                    "UNAUTHENTICATED_USER": None,           #推荐使用，匿名，因为request.user = None
-                    "UNAUTHENTICATED_TOKEN": None,          # 匿名，因为request.auth = None
-                }
-        2.源码流程
-            dispath->封装request->获取定义的认证类（全局/局部）,通过列表生成器创建对象->initial->perform_authentication->request.user
+### 一、认证
+    1.使用
+        1.1、创建类：继承BaseAuthentication：实现：authenticate这个方法
+        1.2、返回值：
+            1.2.1、None，下一个认证类执行
+            1.2.3、抛出异常，raise exceptions.AuthenticationFailed('用户认证失败')
+            1.2.3、返回元组，（元素1，元素2） 分别赋值给request.user，request.auth
+        1.3、局部使用：
+            需要认证的View:加上authentication_classes = [Authentication,]
+        1.4、全局使用：（使用路径）
+            REST_FRAMEWORK = {
+                # 全局使用的认证类
+                "authentication_classes": ['app01.utils.auth.Authentication'],
+                # 匿名用户设置
+                # "UNAUTHENTICATED_USER": lambda :"匿名用户"
+                "UNAUTHENTICATED_USER": None,           #推荐使用，匿名，因为request.user = None
+                "UNAUTHENTICATED_TOKEN": None,          # 匿名，因为request.auth = None
+            }
+    2.源码流程
+        dispath->封装request->获取定义的认证类（全局/局部）,通过列表生成器创建对象->initial->perform_authentication->request.user
 
 
-二、权限
+### 二、权限
     问题：不同的视图不同的权限
-    1.基本使用
+    1.使用
         class MyPermission(object):
+        
             def has_permission(self, request, view):
                 print(request.user)
                 if request.user.user_type != 1:
                     return False
                 return True
+                
         class OrderView(APIView):
-            # authentication_classes = [Authentication,]
             permission_classes = [MyPermission,]
 
             def get(self, request, *args, **kwargs):
                 ret = {'code': 10000,'msg': None, 'data':None}
                 try:
-                    ret['data'] = ORDER_DICT
+                    ret['data'] = {'msg':'test'}
                 except Exception as e:
                     pass
                 return JsonResponse(ret)
@@ -93,11 +86,12 @@ Django生命周期:(rest_framework)
 
     3.权限梳理
         3.1、基本使用
-            3.1.1、类，必须继承：BasePermission，必须实现：has_permission方法
+            3.1.1、类，必须继承rest-framework提供的类：BasePermission，必须实现：has_permission方法
 
                 from rest_framework.permissions import BasePermission
 
                 class SvipPermission(BasePermission):
+                    # 定义错误信息
                     message = "必须是SVIP才能访问"
 
                     def has_permission(self, request, view):
@@ -114,11 +108,12 @@ Django生命周期:(rest_framework)
                 }
         3.2、源码流程
 
-三、版本
+### 三、版本
     1.URL中通过GET传参数
     2.在URL中传参（推荐使用,正则表达式）
+        例：re_path('(?P<version>[v1|v2]+)/', include(router.urls))
 
-四、解析器
+### 四、解析器
     1.前戏：django:request.POST/ request.body
         1.1、请求头要求：
             Content-Type:application/x-www-form-urlencoded
@@ -180,7 +175,6 @@ Django生命周期:(rest_framework)
                     5.request.data来触发的
                 """
                 print(request.data)
-
                 return  HttpResponse('ParserView')
     3.源码流程&本质：
         3.1、本质
@@ -188,15 +182,15 @@ Django生命周期:(rest_framework)
             状态码
             请求方法
         3.2、源码流程
-            -dispath:request封装
-            -request.data
+            --dispath:request封装
+            --request.data
 
-五、序列化
-    （1）序列化：
-        1.写类，继承于Serializer(自定义生成字段)、ModelSerializer(自动生成字段，也是继承于Serializer)
-        2.字段：
-            2.1、name=serializers.CharField(source="xxx.xx.xx")
-            2.2、roles = serializers.SerializerMethodField()  # 自定义显示
+### 五、序列化
+    1.序列化：
+        1.1、写类，继承于Serializer(自定义生成字段)、ModelSerializer(自动生成字段，也是继承于Serializer)
+        1.2、字段：
+            1.2.1、name=serializers.CharField(source="xxx.xx.xx")
+            1.2.2、roles = serializers.SerializerMethodField()  # 自定义显示
 
                     class UserInfoSerializer(serializers.ModelSerializer):
                         roles = serializers.SerializerMethodField()  # 字段自定义显示
@@ -204,7 +198,7 @@ Django生命周期:(rest_framework)
                             model = UserInfo
                             # fields = "__all__"
                             fields = ['id', 'username', 'password', 'xxx', 'roles', 'group']
-
+    
                         def get_roles(self, row):
                             role_obj_list = row.roles.all()
                             ret = []
@@ -212,14 +206,14 @@ Django生命周期:(rest_framework)
                                 ret.append({'id':item.id, 'name':item.name})
                             return ret
             2.3、自定义类不常用
-        3.自动化序列化连表
+        1.3、自动化序列化连表
             class UserInfoSerializer(serializers.ModelSerializer):
                 class Meta:
                     model = UserInfo
                     fields = "__all__"
                     # fields = ['id', 'username', 'password', 'xxx', 'roles', 'group']
                     depth = 1  # 官方建议0~10，尽量不要超过3层
-        4.生成链接
+        1.4、生成链接
             class UserInfoSerializer(serializers.ModelSerializer):
                 group = serializers.HyperlinkedIdentityField(view_name='group', lookup_field='group_id', lookup_url_kwarg='pk')
 
@@ -242,11 +236,11 @@ Django生命周期:(rest_framework)
                     # print(ser.data)
                     ret = json.dumps(ser.data, ensure_ascii=False)
                     return HttpResponse(ret)
-        5.源码流程
+        1.5、源码流程
             对象，Serializer类处理
             QuerySet，ListSerializer类处理
-            # ser.data入口
-    (2)请求数据校验
+            # ser.data是入口
+    2.请求数据校验
         class XXXValidator(object):
             def __init__(self, base):
                 self.base = base
