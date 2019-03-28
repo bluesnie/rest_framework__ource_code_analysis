@@ -1,6 +1,7 @@
 # _*_ encoding:utf-8 _*_
 from rest_framework.permissions import BasePermission
 
+
 class SvipPermission(BasePermission):
     message = "必须是SVIP才能访问"
 

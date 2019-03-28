@@ -2,36 +2,22 @@ import json
 
 from django.shortcuts import render
 from django.views import View
-
 from django.http import HttpResponse
 from django.http import JsonResponse
-
 from rest_framework.views import APIView
 from rest_framework.authentication import BasicAuthentication
 from rest_framework import exceptions
 from rest_framework.request import Request
 from rest_framework.permissions import BasePermission
 from rest_framework.versioning import QueryParameterVersioning, URLPathVersioning,NamespaceVersioning
+
 from app01.utils.permission import VipPermission
 from app01.models import UserInfo, UserToken, Role, UserGroup
 
 
 # Create your views here.
 
-
-
-
-
-
-
-
-
-
-###################### 第一部分
-
-
-
-
+# 认证
 # 访问进来第一步执行as_view()里面的view()里面的dispath,当前类没有找父类
 class MyAuthentication(object):
     """
@@ -82,18 +68,13 @@ class MyAuthentication(object):
 #         return HttpResponse('删除order')
 
 
-
-
-
-
-
-#################################### 第二部分
 #####认证原理
-
-
-
-# 生产token函数
 def md5(user):
+    """
+    生成token
+    :param user:
+    :return:
+    """
     import hashlib
     import time
 
@@ -102,19 +83,21 @@ def md5(user):
     m.update(bytes(ctime, encoding='utf-8'))
     return m.hexdigest()
 
-# 实验数据
+
+# 测试数据
 ORDER_DICT = {
-    1:{
-        'name':'狗',
-        'age':12,
-        'gender':'男'
+    1: {
+        'name': '狗',
+        'age': 12,
+        'gender': '男',
     },
-    2:{
-        'name':'猫',
-        'age':15,
-        'gender':'女'
-    }
+    2: {
+        'name': '猫',
+        'age': 15,
+        'gender': '女',
+    },
 }
+
 
 # 用户认证
 class AuthView(APIView):
@@ -123,7 +106,7 @@ class AuthView(APIView):
     authentication_classes = []
 
     def post(self, request, *args, **kwargs):
-        ret = {'code':1000, 'msg':None}
+        ret = {'code': 1000, 'msg': None}
         try:
             user = request._request.POST.get('username', '')
             pwd = request._request.POST.get('password', '')
@@ -134,7 +117,7 @@ class AuthView(APIView):
             # 为登录用户创建token
             token = md5(user)
             # 存在就更新，不存在就创建
-            UserToken.objects.update_or_create(user=obj, defaults={'token':token})
+            UserToken.objects.update_or_create(user=obj, defaults={'token': token})
 
         except Exception as e:
             ret['code'] = '1002'
@@ -156,7 +139,6 @@ class AuthView(APIView):
 #     def authenticate_header(self, val):
 #         pass
 
-
 # 权限类，写在permission.py中
 # class MyPermission2(object):
 #
@@ -173,12 +155,16 @@ class AuthView(APIView):
 #             return False
 #         return True
 
+
 # 版本类(自定义)
 class ParamVersion(object):
+
     def determine_version(self, request, *args, **kwargs):
         version = request.query_params.get('version')
         return version
+
 # 自带的from rest_framework.versioning import QueryParameterVersioning, URLPathVersioning
+
 
 class OrderView(APIView):
     """订单相关业务（只让svip访问）"""
@@ -219,10 +205,12 @@ from rest_framework import serializers
 #
 #     username = serializers.CharField()
 #     password = serializers.CharField()
+
 #     # source 属性是对应model的字段，所以这里可以自定义名称,当一个表有choice,ForeignKey时都可以用source指定
 #     # xxx = serializers.CharField(source="get_user_type_display")
 #     user_type = serializers.CharField(source="get_user_type_display") # row.get_user_type_display
 #     gorup = serializers.CharField(source="group.name")
+
 #     # ManyToMany则不适合
 #     # roles = serializers.CharField(source="roles.all")
 #
@@ -254,11 +242,11 @@ from rest_framework import serializers
 #             ret.append({'id':item.id, 'name':item.name})
 #         return ret
 
+
 # 方式三
-
-
 class UserInfoSerializer(serializers.ModelSerializer):
     group = serializers.HyperlinkedIdentityField(view_name='group', lookup_field='group_id', lookup_url_kwarg='pk')
+
     class Meta:
         model = UserInfo
         fields = "__all__"
@@ -329,8 +317,6 @@ class ParserView(APIView):
         return  HttpResponse('ParserView')
 
 # 序列化
-
-
 from rest_framework import serializers
 
 

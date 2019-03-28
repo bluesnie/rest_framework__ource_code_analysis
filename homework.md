@@ -1,66 +1,170 @@
-## Django生命周期
-    a.wsgi
-        wsgi：协议
-        wsgiref:是python实现wsgi协议的一个模块，模块的本质：一个socket服务端(django)
-        werkzeug:是python实现wsgi协议的一个模块，模块的本质：一个socket服务端(Flask框架)
-        tornado:是python实现wsgi协议的一个模块，模块的本质：一个socket服务端(Flask框架)
-        uwsgi:是实现了wsgi协议的一个模块，模块本质：一个socket服务器
+# Django生命周期
 
-## Django生命周期:(rest_framework)
-    CBV:wsgi->中间件->路由匹配->反射视图方法
+        a.wsgi
+            wsgi：协议
+            wsgiref:是python实现wsgi协议的一个模块，模块的本质：一个socket服务端(django)
+            werkzeug:是python实现wsgi协议的一个模块，模块的本质：一个socket服务端(Flask框架)
+            tornado:是python实现wsgi协议的一个模块，模块的本质：一个socket服务端(Flask框架)
+            uwsgi:是实现了wsgi协议的一个模块，模块本质：一个socket服务器
+
+# Django生命周期:(rest_framework)
+
+        CBV,基于反射实现根据请求方式不同，执行不同的方法。
+        原理：
+            1.路由
+                url -> as_view()里的view方法 -> dispath方法（反射执行其他：GET/POST/DELETE/PUT）
+
+            2.流程
+                class StudentView(View):
+                    def dispath(self, request, *args, **kwargs):
+                        print('before') # 自己添加需求
+                        ret = super(Student, self).dispath(request, *args, **kwargs)
+                        print('after')
+                
+                    def get(self, request, *args, **kwargs):
+                        return HttpResponse('GET')
+                
+                    def post(self, request, *args, **kwargs):
+                        return HttpResponse('POST')
+                
+                    def put(self, request, *args, **kwargs):
+                        return HttpResponse('PUT')
+                
+                    def delete(self, request, *args, **kwargs):
+                        return HttpResponse('DELETE')
+                
     
-## Django的rest_framework：
-### 中间件
-    1.最多几个方法：
-        process_request；
-        process_view；
-        process_response；
-        process_exception；
-        process_render_template；
-    2.用中间件做过什么：
-        --利用它实现csrf_token，利用process_view中处理或装饰器
-            2.1、为什么用process_view而不用process_request?
-                因为用process_request的话如果用的是装饰器这需要到达路由匹配到函数才能访问的装饰器，而process_view还没有路由匹配到函数就处理了
-        --基于角色的权限控制
-        --用户认证
-        --csrf(说原理）
-        --session(说原理）
-        --黑名单
-        --日志记录
-    3.csrf
-    4.CBV
-    5.restful
-        3.1、10条规范
-        3.2、自己的认识
-    6.djangorestframework
-        5.1、如何验证（基于数据库实现用户认证）
-        5.2、源码流程（面向对象回顾流程）
+# Django的rest_framework：
 
-## Django-Rest-framework
+## 中间件
 
-### 一、认证
-    1.使用
-        1.1、创建类：继承BaseAuthentication：实现：authenticate这个方法
-        1.2、返回值：
-            1.2.1、None，下一个认证类执行
-            1.2.3、抛出异常，raise exceptions.AuthenticationFailed('用户认证失败')
-            1.2.3、返回元组，（元素1，元素2） 分别赋值给request.user，request.auth
-        1.3、局部使用：
-            需要认证的View:加上authentication_classes = [Authentication,]
-        1.4、全局使用：（使用路径）
-            REST_FRAMEWORK = {
-                # 全局使用的认证类
-                "authentication_classes": ['app01.utils.auth.Authentication'],
-                # 匿名用户设置
-                # "UNAUTHENTICATED_USER": lambda :"匿名用户"
-                "UNAUTHENTICATED_USER": None,           #推荐使用，匿名，因为request.user = None
-                "UNAUTHENTICATED_TOKEN": None,          # 匿名，因为request.auth = None
-            }
-    2.源码流程
-        dispath->封装request->获取定义的认证类（全局/局部）,通过列表生成器创建对象->initial->perform_authentication->request.user
+        1.最多几个方法：
+            process_request；
+            process_view；
+            process_response；
+            process_exception；
+            process_render_template；
+            
+            执行流程：
+                首先进来执行所有的process_request然后路由匹配（找到函数不执行跳回去），然后再执行所有的process_view，然后再执行
+                视图函数，然后再执行process_response，如果报错执行process_exception，如果返回render则执行process_render_template。
+            
+        2.用中间件做过什么：
+            --利用它实现csrf_token，利用process_view中处理或装饰器
+                2.1、为什么用process_view而不用process_request?
+                    因为用process_request的话如果用的是装饰器这需要到达路由匹配到函数才能知道是否加了装饰器，
+                    而process_view已经路由匹配到函数，知道函数是否加了装饰器
+            --基于角色的权限控制
+            --用户认证
+            --csrf(说原理）
+            --session(说原理）
+            --黑名单
+            --日志记录
+        3.csrf
+            --检查视图函数是否被 @csrf_exempt(免除csrf认证)
+            --去请求体或cookie中获取token
+            FBV:
+                情况一：FBV中，全局配置
+                    MIDDLEWARE = [
+                        'django.middleware.security.SecurityMiddleware',
+                        'django.contrib.sessions.middleware.SessionMiddleware',
+                        'django.middleware.common.CommonMiddleware',
+                        'django.middleware.csrf.CsrfViewMiddleware',
+                        'django.contrib.auth.middleware.AuthenticationMiddleware',
+                        'django.contrib.messages.middleware.MessageMiddleware',
+                        'django.middleware.clickjacking.XFrameOptionsMiddleware',
+                    ]
+                    
+                    from django.views.decorators.csrf import csrf_exempt
+                    @csrf_exempt    # 该函数无需认证
+                    def users(request):
+                        return HttpResponse('...')
+                        
+                情况二：全局注释，FBV中某些函数需要
+                    from django.views.decorators.csrf import csrf_protect
+                    @csrf_protect    # 该函数需认证
+                    def users(request):
+                        return HttpResponse('...')
+             
+             CBV:   
+             
+                # 单独在get，post。。。等中无效
+                
+                方式一：
+                    from django.views.decorators.csrf import csrf_exempt,csrf_protect
+                    from django.utils.decorates import method_decorator
+                    
+                    class StudentView(View):
+                    
+                        @method_decorator(csrf_exempt)
+                        def dispath(self, request, *args, **kwargs):
+                            ret = super(Student, self).dispath(request, *args, **kwargs)
+                    
+                        def get(self, request, *args, **kwargs):
+                            return HttpResponse('GET')
+                    
+                        def post(self, request, *args, **kwargs):
+                            return HttpResponse('POST')
+                    
+                        def put(self, request, *args, **kwargs):
+                            return HttpResponse('PUT')
+                    
+                        def delete(self, request, *args, **kwargs):
+                            return HttpResponse('DELETE')
+                            
+                方式二：
+                    from django.views.decorators.csrf import csrf_exempt,csrf_protect
+                    from django.utils.decorates import method_decorator
+                    
+                    @method_decorator(csrf_exempt, name='dispath')
+                    class StudentView(View):
+                    
+                        def get(self, request, *args, **kwargs):
+                            return HttpResponse('GET')
+                    
+                        def post(self, request, *args, **kwargs):
+                            return HttpResponse('POST')
+                    
+                        def put(self, request, *args, **kwargs):
+                            return HttpResponse('PUT')
+                    
+                        def delete(self, request, *args, **kwargs):
+                            return HttpResponse('DELETE')
+            
+        4.CBV
+        5.restful
+            3.1、10条规范
+            3.2、自己的认识
+        6.djangorestframework
+            5.1、如何验证（基于数据库实现用户认证）
+            5.2、源码流程（面向对象回顾流程）
 
+# Django-Rest-framework组件
 
-### 二、权限
+## 一、认证
+
+        1.使用
+            1.1、创建类：继承BaseAuthentication：实现：authenticate这个方法
+            1.2、返回值：
+                1.2.1、None，下一个认证类执行
+                1.2.3、抛出异常，raise exceptions.AuthenticationFailed('用户认证失败')
+                1.2.3、返回元组，（元素1，元素2） 分别赋值给request.user，request.auth
+            1.3、局部使用：
+                需要认证的View:加上authentication_classes = [Authentication,]
+            1.4、全局使用：（使用路径）
+                REST_FRAMEWORK = {
+                    # 全局使用的认证类
+                    "authentication_classes": ['app01.utils.auth.Authentication'],
+                    # 匿名用户设置
+                    # "UNAUTHENTICATED_USER": lambda :"匿名用户"
+                    "UNAUTHENTICATED_USER": None,           #推荐使用，匿名，因为request.user = None
+                    "UNAUTHENTICATED_TOKEN": None,          # 匿名，因为request.auth = None
+                }
+        2.源码流程
+            dispath->封装request->获取定义的认证类（全局/局部）,通过列表生成器创建对象->initial->perform_authentication->request.user
+
+## 二、权限
+
     问题：不同的视图不同的权限
     1.使用
         class MyPermission(object):
@@ -271,6 +375,7 @@
                 return HttpResponse('提交数据')
 
 六、分页
+
     数据量大时，怎么规避，1、只显示200页，2、只有上一页和下一页
     1.分页，看第几页，每页显示n条数据；
     2.分页，在n个位置，向后查看n条数据；

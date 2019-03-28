@@ -21,7 +21,7 @@ router.register(r'rt', views.View1View)
 
 urlpatterns = [
     # # 用户认证配置
-    # re_path('(?P<version>[v1|v2]+)/auth/', views.AuthView.as_view(), name='auth'),
+    re_path('(?P<version>[v1|v2]+)/auth/', views.AuthView.as_view(), name='auth'),
     # # 用户中心
     # re_path('(?P<version>[v1|v2]+)/user/', views.UserInfoView.as_view(), name='user'),
     # # 订单配置
