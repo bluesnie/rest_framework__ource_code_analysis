@@ -3,10 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="668620d9-ab46-4273-a4c9-b83abbd64ca1" name="Default Changelist" comment="大体熟悉，还有一些节流，content-type小知识。">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app01/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/app01/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app01/utils/permission.py" beforeDir="false" afterPath="$PROJECT_DIR$/app01/utils/permission.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app01/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/app01/views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/homework.md" beforeDir="false" afterPath="$PROJECT_DIR$/homework.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rest_framework__ource_code_analysis/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/rest_framework__ource_code_analysis/settings.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -20,21 +19,9 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app01/views.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="288">
-              <caret line="99" selection-start-line="99" selection-end-line="99" />
-              <folding>
-                <element signature="e#0#11#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app01/urls.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="304">
+            <state relative-caret-position="120">
               <caret line="23" column="52" selection-start-line="23" selection-start-column="52" selection-end-line="23" selection-end-column="52" />
               <folding>
                 <element signature="e#25#57#0" expanded="true" />
@@ -43,23 +30,44 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/homework.md">
-          <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-            <state split_layout="FIRST">
-              <first_editor relative-caret-position="2376">
-                <caret line="99" column="49" lean-forward="true" selection-start-line="99" selection-start-column="49" selection-end-line="99" selection-end-column="49" />
-              </first_editor>
-              <second_editor />
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/rest_framework__ource_code_analysis/settings.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="269">
+              <caret line="148" column="83" selection-start-line="148" selection-start-column="83" selection-end-line="148" selection-end-column="83" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/rest_framework__ource_code_analysis/settings.py">
+        <entry file="file://$PROJECT_DIR$/app01/views.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="202">
-              <caret line="43" selection-start-line="43" selection-end-line="51" selection-end-column="1" />
+            <state relative-caret-position="54">
+              <caret line="107" selection-start-line="107" selection-end-line="143" selection-end-column="46" />
+              <folding>
+                <element signature="e#0#11#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app01/utils/permission.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="72">
+              <caret line="3" selection-start-line="3" selection-end-line="3" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/homework.md">
+          <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+            <state split_layout="FIRST">
+              <first_editor relative-caret-position="263">
+                <caret line="305" column="31" lean-forward="true" selection-start-line="305" selection-start-column="31" selection-end-line="305" selection-end-column="31" />
+              </first_editor>
+              <second_editor />
             </state>
           </provider>
         </entry>
@@ -76,7 +84,11 @@
   <component name="FindInProjectRecents">
     <findStrings>
       <find>View</find>
+      <find>.</find>
     </findStrings>
+    <replaceStrings>
+      <replace>、</replace>
+    </replaceStrings>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -94,17 +106,17 @@
         <option value="$PROJECT_DIR$/venv/Lib/site-packages/rest_framework/serializers.py" />
         <option value="$PROJECT_DIR$/app01/utils/serializers/pager.py" />
         <option value="$PROJECT_DIR$/venv/Lib/site-packages/rest_framework/templates/rest_framework/base.html" />
-        <option value="$PROJECT_DIR$/rest_framework__ource_code_analysis/settings.py" />
         <option value="$PROJECT_DIR$/app01/utils/permission.py" />
         <option value="$PROJECT_DIR$/app01/urls.py" />
+        <option value="$PROJECT_DIR$/rest_framework__ource_code_analysis/settings.py" />
         <option value="$PROJECT_DIR$/app01/views.py" />
         <option value="$PROJECT_DIR$/homework.md" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-8" />
-    <option name="width" value="1498" />
+    <option name="x" value="996" />
+    <option name="width" value="1573" />
     <option name="height" value="1398" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -114,6 +126,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -124,13 +137,30 @@
             <path>
               <item name="rest_framework__source_code_analysis" type="b2602c69:ProjectViewProjectNode" />
               <item name="rest_framework__ource_code_analysis" type="462c0819:PsiDirectoryNode" />
+              <item name="app01" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="rest_framework__source_code_analysis" type="b2602c69:ProjectViewProjectNode" />
+              <item name="rest_framework__ource_code_analysis" type="462c0819:PsiDirectoryNode" />
+              <item name="app01" type="462c0819:PsiDirectoryNode" />
+              <item name="utils" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="rest_framework__source_code_analysis" type="b2602c69:ProjectViewProjectNode" />
+              <item name="rest_framework__ource_code_analysis" type="462c0819:PsiDirectoryNode" />
+              <item name="app01" type="462c0819:PsiDirectoryNode" />
+              <item name="utils" type="462c0819:PsiDirectoryNode" />
+              <item name="serializers" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="rest_framework__source_code_analysis" type="b2602c69:ProjectViewProjectNode" />
+              <item name="rest_framework__ource_code_analysis" type="462c0819:PsiDirectoryNode" />
               <item name="rest_framework__ource_code_analysis" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -200,7 +230,8 @@
       <workItem from="1553592248116" duration="2329000" />
       <workItem from="1553648592875" duration="2892000" />
       <workItem from="1553735302532" duration="23000" />
-      <workItem from="1553758389731" duration="6429000" />
+      <workItem from="1553758389731" duration="6629000" />
+      <workItem from="1553822736500" duration="21062000" />
     </task>
     <task id="LOCAL-00001" summary="认证，权限，解析器，下一项序列化">
       <created>1553076458350</created>
@@ -227,18 +258,18 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="87802000" />
+    <option name="totallyTimeSpent" value="109064000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-6" y="0" width="1198" height="1118" extended-state="0" />
+    <frame x="797" y="0" width="1258" height="1118" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" weight="0.17368421" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.08166666" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.3009576" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.32952183" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.29534882" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -248,7 +279,7 @@
       <window_info anchor="bottom" id="manage.py@rest_framework__ource_code_analysis" order="9" weight="0.34119782" />
       <window_info anchor="bottom" id="Database Changes" order="10" />
       <window_info anchor="bottom" id="Event Log" order="11" side_tool="true" />
-      <window_info anchor="bottom" id="Terminal" order="12" weight="0.41030928" />
+      <window_info anchor="bottom" id="Terminal" order="12" weight="0.40956342" />
       <window_info anchor="bottom" id="Python Console" order="13" />
       <window_info anchor="bottom" id="manage.py@rest_framework__source_code_analysis" order="14" weight="0.47083926" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
@@ -283,21 +314,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="774">
           <caret line="248" selection-start-line="248" selection-end-line="248" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/venv/Lib/site-packages/rest_framework/authentication.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="369">
-          <caret line="146" column="46" selection-start-line="146" selection-start-column="46" selection-end-line="146" selection-end-column="46" />
-          <folding>
-            <element signature="e#991#1580#0" />
-            <element signature="e#1634#3607#0" />
-            <element signature="e#3663#4760#0" />
-            <element signature="e#4814#6781#0" />
-            <element signature="e#5532#6284#0" />
-            <element signature="e#6840#7550#0" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -421,16 +437,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app01/utils/serializers/pager.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="164">
-          <caret line="7" column="15" lean-forward="true" selection-start-line="7" selection-start-column="15" selection-end-line="7" selection-end-column="15" />
-          <folding>
-            <element signature="e#26#64#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/venv/Lib/site-packages/rest_framework/mixins.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-338">
@@ -482,23 +488,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/rest_framework__ource_code_analysis/urls.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="336">
-          <caret line="14" column="3" lean-forward="true" selection-start-line="14" selection-start-column="3" selection-end-line="14" selection-end-column="3" />
-          <folding>
-            <element signature="e#659#691#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app01/utils/permission.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="72">
-          <caret line="3" selection-start-line="3" selection-end-line="3" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/venv/Lib/site-packages/django/views/generic/base.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1704">
@@ -513,9 +502,35 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/venv/Lib/site-packages/rest_framework/authentication.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-888">
+          <caret line="35" column="6" selection-start-line="35" selection-start-column="6" selection-end-line="35" selection-end-column="6" />
+          <folding>
+            <element signature="e#5532#6284#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app01/__init__.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rest_framework__ource_code_analysis/__init__.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rest_framework__ource_code_analysis/urls.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="336">
+          <caret line="14" column="3" lean-forward="true" selection-start-line="14" selection-start-column="3" selection-end-line="14" selection-end-column="3" />
+          <folding>
+            <element signature="e#659#691#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/app01/urls.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="304">
+        <state relative-caret-position="120">
           <caret line="23" column="52" selection-start-line="23" selection-start-column="52" selection-end-line="23" selection-end-column="52" />
           <folding>
             <element signature="e#25#57#0" expanded="true" />
@@ -523,17 +538,34 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/app01/utils/permission.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="72">
+          <caret line="3" selection-start-line="3" selection-end-line="3" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app01/utils/serializers/pager.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="5" lean-forward="true" selection-start-line="5" selection-end-line="5" />
+          <folding>
+            <element signature="e#26#64#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/rest_framework__ource_code_analysis/settings.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="202">
-          <caret line="43" selection-start-line="43" selection-end-line="51" selection-end-column="1" />
+        <state relative-caret-position="269">
+          <caret line="148" column="83" selection-start-line="148" selection-start-column="83" selection-end-line="148" selection-end-column="83" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app01/views.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="288">
-          <caret line="99" selection-start-line="99" selection-end-line="99" />
+        <state relative-caret-position="54">
+          <caret line="107" selection-start-line="107" selection-end-line="143" selection-end-column="46" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
           </folding>
@@ -543,8 +575,8 @@
     <entry file="file://$PROJECT_DIR$/homework.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="FIRST">
-          <first_editor relative-caret-position="2376">
-            <caret line="99" column="49" lean-forward="true" selection-start-line="99" selection-start-column="49" selection-end-line="99" selection-end-column="49" />
+          <first_editor relative-caret-position="263">
+            <caret line="305" column="31" lean-forward="true" selection-start-line="305" selection-start-column="31" selection-end-line="305" selection-end-column="31" />
           </first_editor>
           <second_editor />
         </state>

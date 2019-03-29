@@ -1,6 +1,6 @@
 # Django生命周期
 
-        a.wsgi
+        a、wsgi
             wsgi：协议
             wsgiref:是python实现wsgi协议的一个模块，模块的本质：一个socket服务端(django)
             werkzeug:是python实现wsgi协议的一个模块，模块的本质：一个socket服务端(Flask框架)
@@ -11,10 +11,10 @@
 
         CBV,基于反射实现根据请求方式不同，执行不同的方法。
         原理：
-            1.路由
+            1、路由
                 url -> as_view()里的view方法 -> dispath方法（反射执行其他：GET/POST/DELETE/PUT）
 
-            2.流程
+            2、流程
                 class StudentView(View):
                     def dispath(self, request, *args, **kwargs):
                         print('before') # 自己添加需求
@@ -38,7 +38,7 @@
 
 ## 中间件
 
-        1.最多几个方法：
+        1、最多几个方法：
             process_request；
             process_view；
             process_response；
@@ -49,7 +49,7 @@
                 首先进来执行所有的process_request然后路由匹配（找到函数不执行跳回去），然后再执行所有的process_view，然后再执行
                 视图函数，然后再执行process_response，如果报错执行process_exception，如果返回render则执行process_render_template。
             
-        2.用中间件做过什么：
+        2、用中间件做过什么：
             --利用它实现csrf_token，利用process_view中处理或装饰器
                 2.1、为什么用process_view而不用process_request?
                     因为用process_request的话如果用的是装饰器这需要到达路由匹配到函数才能知道是否加了装饰器，
@@ -60,7 +60,8 @@
             --session(说原理）
             --黑名单
             --日志记录
-        3.csrf
+        
+        3、csrf
             --检查视图函数是否被 @csrf_exempt(免除csrf认证)
             --去请求体或cookie中获取token
             FBV:
@@ -131,22 +132,92 @@
                         def delete(self, request, *args, **kwargs):
                             return HttpResponse('DELETE')
             
-        4.CBV
-        5.restful
+        4、CBV
+        
+        5、restful
             3.1、10条规范
             3.2、自己的认识
-        6.djangorestframework
+        
+        6、djangorestframework
             5.1、如何验证（基于数据库实现用户认证）
             5.2、源码流程（面向对象回顾流程）
 
+
+# restful api设计（规范，建议）
+
+        1、API与用户的通信协议，总是使用HTTPs协议（推荐使用）。
+        
+        2、域名 
+            --https://api.example.com                 尽量将API部署在专用域名（会存在跨域问题）
+            --https://example.org/api/                API很简单
+                               
+        3、版本
+            --URL，如：https://api.example.com/v1/、https://example.org/api/v1/
+            --请求头                                   跨域时，引发发送多次请求
+        
+        4、路径，视网络上任何东西都是资源，均使用名词表示（可复数）
+            --https://api.example.com/v1/zoos
+            --https://api.example.com/v1/animals
+            --https://api.example.com/v1/employees
+        
+        5、method
+            --GET       ：从服务器取出资源（一项或多项）
+            --POST      ：在服务器新建一个资源
+            --PUT       ：在服务器更新资源（客户端提供改变后的完整资源）
+            --PATCH     ：在服务器更新资源（客户端提供改变的属性）
+            --DELETE    ：从服务器删除资源
+        
+        6、过滤，通过在url上传参的形式传递搜索条件
+            --https://api.example.com/v1/zoos?limit=10：指定返回记录的数量
+            --https://api.example.com/v1/zoos?offset=10：指定返回记录的开始位置
+            --https://api.example.com/v1/zoos?page=2&per_page=100：指定第几页，以及每页的记录数
+            --https://api.example.com/v1/zoos?sortby=name&order=asc：指定返回结果按照哪个属性排序，以及排序顺序
+            --https://api.example.com/v1/zoos?animal_type_id=1：指定筛选条件
+        
+        7、状态码 + 自定义code
+            --200 OK - [GET]：服务器成功返回用户请求的数据，该操作是幂等的（Idempotent）。
+            --201 CREATED - [POST/PUT/PATCH]：用户新建或修改数据成功。
+            --202 Accepted - [*]：表示一个请求已经进入后台排队（异步任务）
+            --204 NO CONTENT - [DELETE]：用户删除数据成功。
+            --400 INVALID REQUEST - [POST/PUT/PATCH]：用户发出的请求有错误，服务器没有进行新建或修改数据的操作，该操作是幂等的。
+            --401 Unauthorized - [*]：表示用户没有权限（令牌、用户名、密码错误）。
+            --403 Forbidden - [*] 表示用户得到授权（与401错误相对），但是访问是被禁止的。
+            --404 NOT FOUND - [*]：用户发出的请求针对的是不存在的记录，服务器没有进行操作，该操作是幂等的。
+            --406 Not Acceptable - [GET]：用户请求的格式不可得（比如用户请求JSON格式，但是只有XML格式）。
+            --410 Gone -[GET]：用户请求的资源被永久删除，且不会再得到的。
+            --422 Unprocesable entity - [POST/PUT/PATCH] 当创建一个对象时，发生一个验证错误。
+            --500 INTERNAL SERVER ERROR - [*]：服务器发生错误，用户将无法判断发出的请求是否成功。
+        
+        8、错误处理，状态码是4xx时，应返回错误信息，error当做key。
+            {
+                error: "Invalid API key"
+            }
+        
+        9、返回结果，针对不同操作，服务器向用户返回的结果应该符合以下规范。
+            GET /collection：返回资源对象的列表（数组）
+            GET /collection/resource：返回单个资源对象
+            POST /collection：返回新生成的资源对象
+            PUT /collection/resource：返回完整的资源对象
+            PATCH /collection/resource：返回完整的资源对象
+            DELETE /collection/resource：返回一个空文档
+            
+        
+        10、Hypermedia API，RESTful API最好做到Hypermedia，即返回结果中提供链接，连向其他API方法，使得用户不查文档，也知道下一步应该做什么。
+            {"link": {
+              "rel":   "collection https://www.example.com/zoos",
+              "href":  "https://api.example.com/zoos",
+              "title": "List of zoos",
+              "type":  "application/vnd.yourformat+json"
+            }}
+        
 # Django-Rest-framework组件
 
 ## 一、认证
 
-        1.使用
+        1、使用
             1.1、创建类：继承BaseAuthentication：实现：authenticate这个方法
             1.2、返回值：
-                1.2.1、None，下一个认证类执行
+                1.2.1、None，下一个认证类执行，全部都返回None，则返回匿名用户。
                 1.2.3、抛出异常，raise exceptions.AuthenticationFailed('用户认证失败')
                 1.2.3、返回元组，（元素1，元素2） 分别赋值给request.user，request.auth
             1.3、局部使用：
@@ -154,71 +225,114 @@
             1.4、全局使用：（使用路径）
                 REST_FRAMEWORK = {
                     # 全局使用的认证类
-                    "authentication_classes": ['app01.utils.auth.Authentication'],
+                    "authentication_classes": ['app01.utils.auth.Authentication',],
                     # 匿名用户设置
                     # "UNAUTHENTICATED_USER": lambda :"匿名用户"
-                    "UNAUTHENTICATED_USER": None,           #推荐使用，匿名，因为request.user = None
+                    "UNAUTHENTICATED_USER": None,           # 推荐使用，匿名，因为request.user = None
                     "UNAUTHENTICATED_TOKEN": None,          # 匿名，因为request.auth = None
                 }
-        2.源码流程
-            dispath->封装request->获取定义的认证类（全局/局部）,通过列表生成器创建对象->initial->perform_authentication->request.user
+        
+        2、源码流程
+            dispath -> 封装request -> 获取定义的认证类（全局/局部）,通过列表生成器创建对象 -> initial -> perform_authentication 
+            -> request.user -> Request里的user方法 -> _authenticate -> 最后执行自定义的认证类里的authenticate方法
 
 ## 二、权限
 
-    问题：不同的视图不同的权限
-    1.使用
-        class MyPermission(object):
+        问题：不同的视图不同的权限
         
-            def has_permission(self, request, view):
-                print(request.user)
-                if request.user.user_type != 1:
-                    return False
-                return True
-                
-        class OrderView(APIView):
-            permission_classes = [MyPermission,]
+        1、使用
+            class MyPermission(object):
+            
+                def has_permission(self, request, view):
+                    print(request.user)
+                    if request.user.user_type != 1:
+                        return False
+                    return True
+                    
+            class OrderView(APIView):
+                permission_classes = [MyPermission,]
+    
+                def get(self, request, *args, **kwargs):
+                    ret = {'code': 10000,'msg': None, 'data':None}
+                    try:
+                        ret['data'] = {'msg':'test'}
+                    except Exception as e:
+                        pass
+                    return JsonResponse(ret)
 
-            def get(self, request, *args, **kwargs):
-                ret = {'code': 10000,'msg': None, 'data':None}
-                try:
-                    ret['data'] = {'msg':'test'}
-                except Exception as e:
-                    pass
-                return JsonResponse(ret)
-    2.源码流程
-        。。。
+        2、权限梳理
+            3.1、基本使用
+                3.1.1、类，必须继承rest-framework提供的类：BasePermission，必须实现：has_permission方法
+    
+                    from rest_framework.permissions import BasePermission
+    
+                    class SvipPermission(BasePermission):
+                        # 定义错误信息
+                        message = "必须是SVIP才能访问"
+    
+                        def has_permission(self, request, view):
+                            # print(request.user)
+                            if request.user.user_type != 3:
+                                return False
+                            return True
+                3.1.2、返回值，True,有权访问，False,无权访问
+                3.1.3、局部使用：
+                    需要认证的View:加上permission_classes = [SvipPermission,]
+                3.1.4、全局使用：（使用路径）
+                    REST_FRAMEWORK = {
+                    "DEFAULT_PERMISSION_CLASSES":['app01.utils.permission.SvipPermission',],
+                    }
+        3、源码流程
+            跟认证相似，执行完认证执行权限，类里面的has_permission方法。
 
-    3.权限梳理
-        3.1、基本使用
-            3.1.1、类，必须继承rest-framework提供的类：BasePermission，必须实现：has_permission方法
+## 三、频率控制
 
-                from rest_framework.permissions import BasePermission
-
-                class SvipPermission(BasePermission):
-                    # 定义错误信息
-                    message = "必须是SVIP才能访问"
-
-                    def has_permission(self, request, view):
-                        # print(request.user)
-                        if request.user.user_type != 3:
-                            return False
+        1、使用
+        
+            import time
+            VISIT_RECORD = {}  # 放入缓存里
+            
+            
+            class VisitThorttle(object):
+            
+                def __init__(self):
+                    self.history = None
+            
+                def allow_request(self, request, view):
+                    """60s内只能访问3次"""
+                    # 1、获取用户ip
+                    remote_addr = request._request.META.get('REMOTE_ADDR')
+                    ctime = time.time()
+                    if remote_addr not in VISIT_RECORD:
+                        VISIT_RECORD[remote_addr] = [ctime, ]
                         return True
-            3.1.2、返回值，True,有权访问，False,无权访问
-            3.1.3、局部使用：
-                需要认证的View:加上permission_classes = [SvipPermission,]
-            3.1.4、全局使用：（使用路径）
-                REST_FRAMEWORK = {
-                "DEFAULT_PERMISSION_CLASSES":['app01.utils.permission.SvipPermission',],
-                }
-        3.2、源码流程
+                    self.history = VISIT_RECORD.get(remote_addr)
+            
+                    # 把超出时间外的时间数据pop掉
+                    while self.history and self.history[-1] < ctime - 60:
+                        self.history.pop()
+            
+                    if len(self.history) < 3:
+                        self.history.insert(0, ctime)
+                        return True
+            
+                    # return True   # 表示可以继续访问
+                    # return False    # return False表示访问频率太高，被限制，不返回也是False。
+            
+                def wait(self):
+                    """提示还需要多少秒可以访问
+            
+                    """
+                    ctime = time.time()
+                    return 60 - (ctime - self.history[-1])
 
-### 三、版本
-    1.URL中通过GET传参数
-    2.在URL中传参（推荐使用,正则表达式）
+## 三、版本
+    1、URL中通过GET传参数
+    2、在URL中传参（推荐使用,正则表达式）
         例：re_path('(?P<version>[v1|v2]+)/', include(router.urls))
 
-### 四、解析器
-    1.前戏：django:request.POST/ request.body
+## 四、解析器
+    1、前戏：django:request.POST/ request.body
         1.1、请求头要求：
             Content-Type:application/x-www-form-urlencoded
             PS：如果请求头中的Content-Type:application/x-www-form-urlencoded，request.POST中才有值（去request.body中解析数据）
@@ -251,7 +365,7 @@
                     ...                                             # body有值，POST没有，但是可以用json.loads(request.body)得到
                 })
 
-    2.rest-framework解析器，对请求体进行解析
+    2、rest-framework解析器，对请求体进行解析
         2.1、全局配置
         2.2、使用
             class ParserView(APIView):
@@ -280,7 +394,7 @@
                 """
                 print(request.data)
                 return  HttpResponse('ParserView')
-    3.源码流程&本质：
+    3、源码流程&本质：
         3.1、本质
             请求体
             状态码
@@ -290,7 +404,7 @@
             --request.data
 
 ### 五、序列化
-    1.序列化：
+    1、序列化：
         1.1、写类，继承于Serializer(自定义生成字段)、ModelSerializer(自动生成字段，也是继承于Serializer)
         1.2、字段：
             1.2.1、name=serializers.CharField(source="xxx.xx.xx")
@@ -344,7 +458,7 @@
             对象，Serializer类处理
             QuerySet，ListSerializer类处理
             # ser.data是入口
-    2.请求数据校验
+    2、请求数据校验
         class XXXValidator(object):
             def __init__(self, base):
                 self.base = base
@@ -377,9 +491,9 @@
 六、分页
 
     数据量大时，怎么规避，1、只显示200页，2、只有上一页和下一页
-    1.分页，看第几页，每页显示n条数据；
-    2.分页，在n个位置，向后查看n条数据；
-    3.加密分页，只能看上一页和下一页。
+    1、分页，看第几页，每页显示n条数据；
+    2、分页，在n个位置，向后查看n条数据；
+    3、加密分页，只能看上一页和下一页。
     
          第一种分页
          class MyPagination(PageNumberPagination):
@@ -432,18 +546,18 @@
                 # 生成上一页下一页链接(加密分页很有用)
                 return pg.get_paginated_response(ser.data)
     总结：
-        1.数据量大，如何做分页？
+        1、数据量大，如何做分页？
             1.1、数据库性能相关转到rest_framework是怎么处理
             1.2、
 
 七、视图
-    1.过去
+    1、过去
         class XxxView(View)：
             pass
-    2.现在
+    2、现在
         class XxxView(APIView): APIView继承于VIew
             pass
-    3.没什么用的类：GenericAPIView（不使用）
+    3、没什么用的类：GenericAPIView（不使用）
         from app01.utils.serializers.pager import PagerSerializer
         from rest_framework.generics import GenericAPIView
         
@@ -465,7 +579,7 @@
         
                 return Response(ser.data)
                
-    4.GenericViewSet(ViewSetMixin, generics.GenericAPIView):     
+    4、GenericViewSet(ViewSetMixin, generics.GenericAPIView):     
         路由：
             re_path('(?P<version>[v1|v2]+)/v1/', views.View1View.as_view({'get': 'list'}), name='view1'),
 
@@ -491,7 +605,7 @@
                     ser = self.get_serializer(instance=pager_roles, many=True)
             
                     return Response(ser.data)       
-    5.ModelViewSet(最强大)
+    5、ModelViewSet(最强大)
         路由：
             re_path('(?P<version>[v1|v2]+)/v1/$', views.View1View.as_view({'get': 'list', 'post':'create'}), name='view1'),
             re_path('(?P<version>[v1|v2]+)/v1/(?P<pk>\d+)', views.View1View.as_view({'get': 'retrieve','delete':'destroy','put': 'update','patch': 'partial_update'}), name='view1'),
@@ -509,7 +623,7 @@
                 permission_classes = []        
                 
             PS:class View1View(CreateModelMixin):
-    6.总结：
+    6、总结：
         6.1、增删改查：ModelViewSet
         6.2、增删：CreateModelMixin，DestroyModelMixin，GenericViewSet
         6.4、复杂逻辑：GenericViewSet 或 APIView
@@ -520,18 +634,18 @@
                     has_object_permission
 
 八、路由
-    1.
+    1、
         re_path('(?P<version>[v1|v2]+)/auth/', views.AuthView.as_view(), name='auth'),
-    2.
+    2、
         re_path('(?P<version>[v1|v2]+)/v1/$', views.View1View.as_view({'get': 'list', 'post':'create'}), name='view1'),
-    3.
+    3、
         # http://127.0.0.1:8000/api01/v1/v1/
         re_path('(?P<version>[v1|v2]+)/v1/$', views.View1View.as_view({'get': 'list', 'post':'create'}), name='view1'),
         # http://127.0.0.1:8000/api01/v1/v1.json
         re_path('(?P<version>[v1|v2]+)/v1\.(?P<format>\w+)$', views.View1View.as_view({'get': 'list', 'post':'create'}), name='view1'),
         re_path('(?P<version>[v1|v2]+)/v1/(?P<pk>\d+)$', views.View1View.as_view({'get': 'retrieve', 'delete':'destroy', 'put': 'update', 'patch': 'partial_update'}), name='view1'),
         re_path('(?P<version>[v1|v2]+)/v1/(?P<pk>\d+)\.(?P<format>\w+)', views.View1View.as_view({'get': 'retrieve','delete':'destroy','put': 'update','patch': 'partial_update'}), name='view1'),
-    4.
+    4、
         from app01 import views
         from rest_framework import routers
         # rest_framework路由

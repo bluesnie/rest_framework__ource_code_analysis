@@ -1,5 +1,6 @@
 import json
 
+from rest_framework.authentication import BaseAuthentication
 from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse
@@ -37,10 +38,15 @@ class MyAuthentication(object):
         # 获取用户名和密码，去数据库校验
         if not token:
             raise exceptions.AuthenticationFailed('用户认证失败')
-        # 放回元组（校验后的数据）
+        # 返回元组（校验后的数据）
         return ("nzb", None)
 
     def authenticate_header(self, val):
+        """
+        认证失败给浏览器返回的响应头
+        :param val:
+        :return:
+        """
         pass
 
 # APIView继承自View
@@ -99,11 +105,52 @@ ORDER_DICT = {
 }
 
 
+# 频率控制类
+import time
+VISIT_RECORD = {}  # 放入缓存里
+
+
+class VisitThorttle(object):
+
+    def __init__(self):
+        self.history = None
+
+    def allow_request(self, request, view):
+        """60s内只能访问3次"""
+        # 1、获取用户ip
+        remote_addr = request._request.META.get('REMOTE_ADDR')
+        ctime = time.time()
+        if remote_addr not in VISIT_RECORD:
+            VISIT_RECORD[remote_addr] = [ctime, ]
+            return True
+        self.history = VISIT_RECORD.get(remote_addr)
+
+        # 把超出时间外的时间数据pop掉
+        while self.history and self.history[-1] < ctime - 60:
+            self.history.pop()
+
+        if len(self.history) < 3:
+            self.history.insert(0, ctime)
+            return True
+
+        # return True   # 表示可以继续访问
+        # return False    # return False表示访问频率太高，被限制，不返回也是False。
+
+    def wait(self):
+        """提示还需要多少秒可以访问
+
+        """
+        ctime = time.time()
+        return 60 - (ctime - self.history[-1])
+
+
 # 用户认证
 class AuthView(APIView):
     """用户认证"""
     # 因为全局配置了，但当前View认证，所以设置为空
     authentication_classes = []
+    permission_classes = []
+    throttle_classes = [VisitThorttle, ]
 
     def post(self, request, *args, **kwargs):
         ret = {'code': 1000, 'msg': None}
@@ -118,7 +165,7 @@ class AuthView(APIView):
             token = md5(user)
             # 存在就更新，不存在就创建
             UserToken.objects.update_or_create(user=obj, defaults={'token': token})
-
+            ret['token'] = token
         except Exception as e:
             ret['code'] = '1002'
             ret['msg'] = '请求异常'
