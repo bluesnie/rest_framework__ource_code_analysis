@@ -134,23 +134,28 @@ REST_FRAMEWORK = {
     "UNAUTHENTICATED_TOKEN": None,          # 匿名，因为request.auth = None
 
     # 全局权限类
-    "DEFAULT_PERMISSION_CLASSES":['app01.utils.permission.SvipPermission',],
+    "DEFAULT_PERMISSION_CLASSES": ['app01.utils.permission.SvipPermission', ],
 
     # 版本配置类
-    "DEFAULT_VERSIONING_CLASS":'rest_framework.versioning.URLPathVersioning',
+    "DEFAULT_VERSIONING_CLASS": 'rest_framework.versioning.URLPathVersioning',
     "DEFAULT_VERSION": 'v1',         # 默认版本
     "ALLOWED_VERSIONS": ['v1', 'v2'],  # 允许版本
     "VERSION_PARAM": 'version',      # 版本参数
 
     # 解析器配置
-    "DEFAULT_PARSER_CLASSES":['rest_framework.parsers.JSONParser', 'rest_framework.parsers.FormParser'],
+    "DEFAULT_PARSER_CLASSES": ['rest_framework.parsers.JSONParser', 'rest_framework.parsers.FormParser'],
 
     # 分页
-    "DEFAULT_PAGINATION_CLASS":['rest_framework.pagination.LimitOffsetPagination', ],
-    "PAGE_SIZE":2,
+    "DEFAULT_PAGINATION_CLASS": ['rest_framework.pagination.LimitOffsetPagination', ],
+    "PAGE_SIZE": 2,
 
     # 渲染器
-    'DEFAULT_RENDERER_CLASSES':['rest_framework.renderers.JSONRenderer',
-                                'rest_framework.renderers.BrowsableAPIRenderer']
-
+    'DEFAULT_RENDERER_CLASSES': ['rest_framework.renderers.JSONRenderer',
+                                 'rest_framework.renderers.BrowsableAPIRenderer'],
+    # 访问频率控制
+    'DEFAULT_THROTTLE_CLASSES': ['app01.utils.throttle.UserThorttle', ],
+    'DEFAULT_THROTTLE_RATES': {
+        'Lufei': '3/m',  # 匿名用户配置 一分钟三次
+        'LufeiUser': '3/m',  # 用户配置 一分钟三次
+    }
 }

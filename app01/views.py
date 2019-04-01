@@ -14,7 +14,7 @@ from rest_framework.versioning import QueryParameterVersioning, URLPathVersionin
 
 from app01.utils.permission import VipPermission
 from app01.models import UserInfo, UserToken, Role, UserGroup
-
+from app01.utils.throttle import VisitThorttle
 
 # Create your views here.
 
@@ -105,43 +105,43 @@ ORDER_DICT = {
 }
 
 
-# 频率控制类
-import time
-VISIT_RECORD = {}  # 放入缓存里
-
-
-class VisitThorttle(object):
-
-    def __init__(self):
-        self.history = None
-
-    def allow_request(self, request, view):
-        """60s内只能访问3次"""
-        # 1、获取用户ip
-        remote_addr = request._request.META.get('REMOTE_ADDR')
-        ctime = time.time()
-        if remote_addr not in VISIT_RECORD:
-            VISIT_RECORD[remote_addr] = [ctime, ]
-            return True
-        self.history = VISIT_RECORD.get(remote_addr)
-
-        # 把超出时间外的时间数据pop掉
-        while self.history and self.history[-1] < ctime - 60:
-            self.history.pop()
-
-        if len(self.history) < 3:
-            self.history.insert(0, ctime)
-            return True
-
-        # return True   # 表示可以继续访问
-        # return False    # return False表示访问频率太高，被限制，不返回也是False。
-
-    def wait(self):
-        """提示还需要多少秒可以访问
-
-        """
-        ctime = time.time()
-        return 60 - (ctime - self.history[-1])
+# # 频率控制类
+# import time
+# VISIT_RECORD = {}  # 放入缓存里
+#
+#
+# class VisitThorttle(object):
+#
+#     def __init__(self):
+#         self.history = None
+#
+#     def allow_request(self, request, view):
+#         """60s内只能访问3次"""
+#         # 1、获取用户ip
+#         remote_addr = request._request.META.get('REMOTE_ADDR')
+#         ctime = time.time()
+#         if remote_addr not in VISIT_RECORD:
+#             VISIT_RECORD[remote_addr] = [ctime, ]
+#             return True
+#         self.history = VISIT_RECORD.get(remote_addr)
+#
+#         # 把超出时间外的时间数据pop掉
+#         while self.history and self.history[-1] < ctime - 60:
+#             self.history.pop()
+#
+#         if len(self.history) < 3:
+#             self.history.insert(0, ctime)
+#             return True
+#
+#         # return True   # 表示可以继续访问
+#         # return False    # return False表示访问频率太高，被限制，不返回也是False。
+#
+#     def wait(self):
+#         """提示还需要多少秒可以访问
+#
+#         """
+#         ctime = time.time()
+#         return 60 - (ctime - self.history[-1])
 
 
 # 用户认证
@@ -224,7 +224,7 @@ class OrderView(APIView):
     # versioning_class = URLPathVersioning
 
     def get(self, request, *args, **kwargs):
-        self.dispatch()
+        # self.dispatch()
         # 前面认证返回的可以这样取
         # request.user
         # request.auth

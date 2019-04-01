@@ -215,6 +215,7 @@
 ## 一、认证
 
         1、使用
+        
             1.1、创建类：继承BaseAuthentication：实现：authenticate这个方法
             1.2、返回值：
                 1.2.1、None，下一个认证类执行，全部都返回None，则返回匿名用户。
@@ -233,6 +234,7 @@
                 }
         
         2、源码流程
+        
             dispath -> 封装request -> 获取定义的认证类（全局/局部）,通过列表生成器创建对象 -> initial -> perform_authentication 
             -> request.user -> Request里的user方法 -> _authenticate -> 最后执行自定义的认证类里的authenticate方法
 
@@ -261,7 +263,9 @@
                     return JsonResponse(ret)
 
         2、权限梳理
+        
             3.1、基本使用
+            
                 3.1.1、类，必须继承rest-framework提供的类：BasePermission，必须实现：has_permission方法
     
                     from rest_framework.permissions import BasePermission
@@ -282,13 +286,38 @@
                     REST_FRAMEWORK = {
                     "DEFAULT_PERMISSION_CLASSES":['app01.utils.permission.SvipPermission',],
                     }
+                    
         3、源码流程
             跟认证相似，执行完认证执行权限，类里面的has_permission方法。
 
-## 三、频率控制
+## 三、频率控制(节流)
 
         1、使用
-        
+            
+            -类，继承：BaseThrottle，实现：allow_request、wait方法
+            -类，继承：SimpleRateThrottle，实现：get_cache_key、scope = "Lufei" (配置文件中的key)
+            
+            1.1、局部使用
+                class AuthView(APIView):
+                    """用户认证"""
+                    # 因为全局配置了，但当前View认证，所以设置为空
+                    authentication_classes = []
+                    permission_classes = []
+                    throttle_classes = [VisitThorttle, ]
+                
+                    def post(self, request, *args, **kwargs):
+                
+            1.2、全局使用
+                REST_FRAMEWORK = {
+                    # 访问频率控制
+                    'DEFAULT_THROTTLE_CLASSES': ['app01.utils.throttle.UserThorttle', ],
+                    'DEFAULT_THROTTLE_RATES': {
+                        'Lufei': '3/m',  # 匿名用户配置 一分钟三次
+                        'LufeiUser': '3/m',  # 用户配置 一分钟三次
+                    }
+                }
+            
+                
             import time
             VISIT_RECORD = {}  # 放入缓存里
             
@@ -325,13 +354,20 @@
                     """
                     ctime = time.time()
                     return 60 - (ctime - self.history[-1])
+        
+        2、流程流程 
+        
+            跟认证相似，执行完权限执行节流，类里面的allow_request方法。           
+        
 
 ## 三、版本
+
     1、URL中通过GET传参数
     2、在URL中传参（推荐使用,正则表达式）
         例：re_path('(?P<version>[v1|v2]+)/', include(router.urls))
 
 ## 四、解析器
+
     1、前戏：django:request.POST/ request.body
         1.1、请求头要求：
             Content-Type:application/x-www-form-urlencoded

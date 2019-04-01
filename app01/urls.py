@@ -25,7 +25,7 @@ urlpatterns = [
     # # 用户中心
     # re_path('(?P<version>[v1|v2]+)/user/', views.UserInfoView.as_view(), name='user'),
     # # 订单配置
-    # re_path('(?P<version>[v1|v2]+)/order/', views.OrderView.as_view(), name='order'),
+    re_path('(?P<version>[v1|v2]+)/order/', views.OrderView.as_view(), name='order'),
     # # 解析器配置
     # re_path('(?P<version>[v1|v2]+)/parser/', views.ParserView.as_view(), name='parser'),
     # # 序列化配置
