@@ -1,5 +1,7 @@
 import json
 
+from django.contrib import auth
+
 from rest_framework.authentication import BaseAuthentication
 from django.shortcuts import render
 from django.views import View
@@ -17,6 +19,7 @@ from app01.models import UserInfo, UserToken, Role, UserGroup
 from app01.utils.throttle import VisitThorttle
 
 # Create your views here.
+
 
 # 认证
 # 访问进来第一步执行as_view()里面的view()里面的dispath,当前类没有找父类
@@ -49,12 +52,13 @@ class MyAuthentication(object):
         """
         pass
 
+
 # APIView继承自View
-# class OrderView(APIView):
-#     authentication_classes = [MyAuthentication,]
-#
-#     def get(self, request, *args, **kwargs):
-#         self.dispatch()
+class OrderView(APIView):
+    authentication_classes = [MyAuthentication,]
+
+    def get(self, request, *args, **kwargs):
+        self.dispatch()
 #         # 此时的request不在是原生的request
 #         print(request)
 #         print(request.user)

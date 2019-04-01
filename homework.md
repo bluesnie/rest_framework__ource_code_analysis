@@ -1,7 +1,7 @@
 # Django生命周期
 
         a、wsgi
-            wsgi：协议
+            wsgi：协议：web server getway interface      web服务网关接口
             wsgiref:是python实现wsgi协议的一个模块，模块的本质：一个socket服务端(django)
             werkzeug:是python实现wsgi协议的一个模块，模块的本质：一个socket服务端(Flask框架)
             tornado:是python实现wsgi协议的一个模块，模块的本质：一个socket服务端(Flask框架)
