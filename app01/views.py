@@ -238,6 +238,7 @@ class OrderView(APIView):
         # 获取处理版本的对象
         # print(request.versioning_scheme)
         # request.versioning_scheme
+        # 反向生成url
         # print(request.versioning_scheme.reverse(viewname='order', request=request))
 
         ret = {'code': 10000,'msg': None, 'data':None}
@@ -248,8 +249,73 @@ class OrderView(APIView):
         return JsonResponse(ret)
 
 
+# 解析器
+from rest_framework.parsers import JSONParser, FormParser, FileUploadParser
+
+
+class ParserView(APIView):
+    # 全局配置
+    # parser_classes = [JSONParser, FormParser]
+    """
+    JSONParser:表示只能解析content-type:application/json头,(最常用)
+    FormParser:表示只能解析content-type:application/x-www-form-urlencoded头
+    """
+
+    def post(self, request, *args, **kwargs):
+        """
+        允许用户发送JSON格式数据
+            a.content-type:application/json
+            b.{'name':'alex','age':18}
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        # 获取解析后的结果，用了request.data才去解析
+        """
+            1.获取用户请求
+            2.获取用户请求体
+            3.根据用户请求体和parser_classes = [JSONParser,]中支持的请求头进行比较
+            4.JSONParser对象处理请求体
+            5.request.data来触发的
+        """
+        print(request.data)
+
+        return HttpResponse('ParserView')
+
+
 # 用户序列化
 from rest_framework import serializers
+
+
+class RolesSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    name = serializers.CharField()
+
+
+class RolesView(APIView):
+
+    def get(self, request, *args, **kwargs):
+
+        # 方式一：
+        # roles = Role.objects.all().values('id', 'name')
+        # roles = list(roles)
+        # ret = json.dumps(roles, ensure_ascii=False)
+
+        # 方式二：
+        roles = Role.objects.all()
+
+        # 多条数据加many属性
+        ser = RolesSerializer(instance=roles, many=True)
+
+        # 单个数据many属性为False
+        # ser = Role.objects.all().first()
+        # ser = RolesSerializer(instance=roles, many=False)
+        # ser.data已经是转换完成的结果
+
+        ret = json.dumps(ser.data, ensure_ascii=False)
+        return HttpResponse(ret)
+
 
 # 方式一：继承serializers.Serializer
 # class UserInfoSerializer(serializers.Serializer):
@@ -316,7 +382,7 @@ class UserInfoView(APIView):
         users = UserInfo.objects.all()
 
         # 对象（单个结果），Serializer类处理；self.to_representation
-        # QuerySet，ListSerializer类处理；self.to_representation
+        # 多个结果，QuerySet，ListSerializer类处理；self.to_representation
         # 1.实例化，一般将数据封装到对象：__new__,__init__
         """
         many=True,接下来执行ListSerializer对象的构造方法
@@ -329,73 +395,6 @@ class UserInfoView(APIView):
         # UserInfoSerializer
 
         # print(ser.data)
-        ret = json.dumps(ser.data, ensure_ascii=False)
-        return HttpResponse(ret)
-
-
-# 解析器
-from rest_framework.parsers import JSONParser, FormParser
-
-
-class ParserView(APIView):
-    # 全局配置
-    # parser_classes = [JSONParser, FormParser]
-    """
-    JSONParser:表示只能解析content-type:application/json头,(最常用)
-    FormParser:表示只能解析content-type:application/x-www-form-urlencoded头
-    """
-
-    def post(self, request, *args, **kwargs):
-        """
-        允许用户发送JSON格式数据
-            a.content-type:application/json
-            b.{'name':'alex','age':18}
-        :param request:
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        # 获取解析后的结果，用了request.data才去解析
-        """
-            1.获取用户请求
-            2.获取用户请求体
-            3.根据用户请求体和parser_classes = [JSONParser,]中支持的请求头进行比较
-            4.JSONParser对象处理请求体
-            5.request.data来触发的
-        """
-        print(request.data)
-
-        return  HttpResponse('ParserView')
-
-# 序列化
-from rest_framework import serializers
-
-
-class RolesSerializer(serializers.Serializer):
-    id = serializers.CharField()
-    name = serializers.CharField()
-
-
-class RolesView(APIView):
-
-    def get(self, request, *args, **kwargs):
-
-        # 方式一：
-        # roles = Role.objects.all().values('id', 'name')
-        # roles = list(roles)
-        # ret = json.dumps(roles, ensure_ascii=False)
-
-        # 方式二：
-        roles = Role.objects.all()
-
-        # 多条数据加many属性
-        ser = RolesSerializer(instance=roles, many=True)
-
-        # 单个数据many属性为False
-        # ser = Role.objects.all().first()
-        # ser = RolesSerializer(instance=roles, many=False)
-        # ser.data已经是转换完成的结果
-
         ret = json.dumps(ser.data, ensure_ascii=False)
         return HttpResponse(ret)
 
@@ -433,7 +432,7 @@ class XXXValidator(object):
 
 
 class UserGroupSerializer(serializers.Serializer):
-    name = serializers.CharField(error_messages={'required': '姓名不能为空'}, validators=[XXXValidator('nzb'),])
+    name = serializers.CharField(error_messages={'required': '姓名不能为空'}, validators=[XXXValidator('nzb'), ])
 
     def validate_name(self, value):
         from rest_framework import exceptions
@@ -453,6 +452,7 @@ class UserGroupView(APIView):
         # print(request.data)
         ser = UserGroupSerializer(data=request.data)
         if ser.is_valid():
+            # 取数据
             print(ser.validated_data)
             # 单独取某些
             print(ser.validated_data['name'])

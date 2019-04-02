@@ -360,171 +360,237 @@
             跟认证相似，执行完权限执行节流，类里面的allow_request方法。           
         
 
-## 三、版本
+## 四、版本(全局配置就行)
 
-    1、URL中通过GET传参数
-    2、在URL中传参（推荐使用,正则表达式）
-        例：re_path('(?P<version>[v1|v2]+)/', include(router.urls))
-
-## 四、解析器
-
-    1、前戏：django:request.POST/ request.body
-        1.1、请求头要求：
-            Content-Type:application/x-www-form-urlencoded
-            PS：如果请求头中的Content-Type:application/x-www-form-urlencoded，request.POST中才有值（去request.body中解析数据）
-        1.2、数据格式要求：
-            name=alex&age=18&gender=男
-        如：
-            a.form表单提交：默认带的是Content-Type:application/x-www-form-urlencoded
-            b.ajax提交：
-
-                $.ajax({
-                    url:...
-                    type:POST
-                    data:{'name':'alex','age':18}    # 内部转化成name=alex&age=18&gender=男，携带Content-Type:application/x-www-form-urlencoded提交
-                    ...
-                })
-                情况一：
-                $.ajax({
-                    url:...
-                    type:POST
-                    headres:{'Content-Type':'application/json'}
-                    data:{'name':'alex','age':18}   # 内部转化成name=alex&age=18&gender=男
-                    ...                             # body有值，POST没有
-                })
-                情况二：
-                $.ajax({
-                    url:...
-                    type:POST
-                    headres:{'Content-Type':'application/json'}
-                    data:JSON.stringfy({'name':'alex','age':18})    # {'name':'alex','age':18}
-                    ...                                             # body有值，POST没有，但是可以用json.loads(request.body)得到
-                })
-
-    2、rest-framework解析器，对请求体进行解析
-        2.1、全局配置
-        2.2、使用
-            class ParserView(APIView):
-            """
-            JSONParser:表示只能解析content-type:application/json头,(最常用)
-            FormParser:表示只能解析content-type:application/x-www-form-urlencoded头
-            """
-
-            def post(self, request, *args, **kwargs):
-                """
-                允许用户发送JSON格式数据
-                    a.content-type:application/json
-                    b.{'name':'alex','age':18}
-                :param request:
-                :param args:
-                :param kwargs:
-                :return:
-                """
-                # 获取解析后的结果，用了request.data才去解析
-                """
-                    1.获取用户请求
-                    2.获取用户请求体
-                    3.根据用户请求体和parser_classes = [JSONParser,]中支持的请求头进行比较
-                    4.JSONParser对象处理请求体
-                    5.request.data来触发的
-                """
-                print(request.data)
-                return  HttpResponse('ParserView')
-    3、源码流程&本质：
-        3.1、本质
-            请求体
-            状态码
-            请求方法
-        3.2、源码流程
-            --dispath:request封装
-            --request.data
-
-### 五、序列化
-    1、序列化：
-        1.1、写类，继承于Serializer(自定义生成字段)、ModelSerializer(自动生成字段，也是继承于Serializer)
-        1.2、字段：
-            1.2.1、name=serializers.CharField(source="xxx.xx.xx")
-            1.2.2、roles = serializers.SerializerMethodField()  # 自定义显示
-
-                    class UserInfoSerializer(serializers.ModelSerializer):
-                        roles = serializers.SerializerMethodField()  # 字段自定义显示
-                        class Meta:
-                            model = UserInfo
-                            # fields = "__all__"
-                            fields = ['id', 'username', 'password', 'xxx', 'roles', 'group']
+        1、URL中通过GET传参数
+        
+            class ParamVersion(object):
     
-                        def get_roles(self, row):
-                            role_obj_list = row.roles.all()
-                            ret = []
-                            for item in role_obj_list:
-                                ret.append({'id':item.id, 'name':item.name})
-                            return ret
-            2.3、自定义类不常用
-        1.3、自动化序列化连表
-            class UserInfoSerializer(serializers.ModelSerializer):
-                class Meta:
-                    model = UserInfo
-                    fields = "__all__"
-                    # fields = ['id', 'username', 'password', 'xxx', 'roles', 'group']
-                    depth = 1  # 官方建议0~10，尽量不要超过3层
-        1.4、生成链接
-            class UserInfoSerializer(serializers.ModelSerializer):
-                group = serializers.HyperlinkedIdentityField(view_name='group', lookup_field='group_id', lookup_url_kwarg='pk')
+                def determine_version(self, request, *args, **kwargs):
+                    version = request.query_params.get('version')
+                    return version
+                    
+            class OrderView(APIView):
+                    versioning_class = ParamVersion
+                    ...
+        
+        2、在URL中传参（推荐使用,正则表达式）
+            
+            # 版本配置类
+            "DEFAULT_VERSIONING_CLASS": 'rest_framework.versioning.URLPathVersioning',
+            "DEFAULT_VERSION": 'v1',         # 默认版本
+            "ALLOWED_VERSIONS": ['v1', 'v2'],  # 允许版本
+            "VERSION_PARAM": 'version',      # 版本参数
+            
+            例：re_path('(?P<version>[v1|v2]+)/', include(router.urls))
+            
+            # 获取版本
+            # print(request.version)
+            # 获取处理版本的对象
+            # print(request.versioning_scheme)
+            
+            # request.versioning_scheme
+            # 反向生成url
+            # print(request.versioning_scheme.reverse(viewname='order', request=request))
 
-                class Meta:
-                    model = UserInfo
-                    fields = "__all__"
-                    fields = ['id', 'username', 'password', 'roles', 'group']
-                    depth = 0  # 官方建议0~10，尽量不要超过3层
 
-            class UserInfoView(APIView):
-                """用户中心（普通用户，vip）"""
-                # authentication_classes = [Authentication, ]
-                # 当前permission_classes存在就不会去取配置文件里的设置
-                permission_classes = [VipPermission, ]
+## 五、解析器(全局配置就行)
 
-                def get(self, request, *args, **kwargs):
+        1、前戏：django:request.POST/ request.body
+        
+            request.POST要有值需要满足以下2个要求：
+                
+                1.1、请求头要求：
+                    Content-Type:application/x-www-form-urlencoded
+                    PS：如果请求头中的Content-Type:application/x-www-form-urlencoded，request.POST中才有值（去request.body中解析数据）
+                
+                1.2、数据格式要求：
+                    name=alex&age=18&gender=男
+                    
+                如：
+                    a.form表单提交：默认带的是Content-Type:application/x-www-form-urlencoded
+                    b.ajax提交：
+        
+                        $.ajax({
+                            url:...
+                            type:POST
+                            data:{'name':'alex','age':18}    # 内部转化成name=alex&age=18&gender=男，携带Content-Type:application/x-www-form-urlencoded提交
+                            ...
+                        })
+                        
+                        情况一：
+                        
+                            $.ajax({
+                                url:...
+                                type:POST
+                                headres:{'Content-Type':'application/json'}
+                                data:{'name':'alex','age':18}   # 内部转化成name=alex&age=18&gender=男
+                                ...                             # body有值，POST没有
+                            })
+                        
+                        情况二：
+                        
+                            $.ajax({
+                                url:...
+                                type:POST
+                                headres:{'Content-Type':'application/json'}
+                                data:JSON.stringfy({'name':'alex','age':18})    # {'name':'alex','age':18}
+                                ...                                             # body有值，POST没有，但是可以用json.loads(request.body)得到
+                            })
+    
+        2、rest-framework解析器，对请求体进行解析
+        
+            2.1、全局配置
+            
+            2.2、使用
+            
+                class ParserView(APIView):
+                """
+                JSONParser:表示只能解析content-type:application/json头,(最常用)
+                FormParser:表示只能解析content-type:application/x-www-form-urlencoded头
+                """
+    
+                def post(self, request, *args, **kwargs):
+                    """
+                    允许用户发送JSON格式数据
+                        a.content-type:application/json
+                        b.{'name':'alex','age':18}
+                    :param request:
+                    :param args:
+                    :param kwargs:
+                    :return:
+                    """
+                    # 获取解析后的结果，用了request.data才去解析
+                    """
+                        1.获取用户请求
+                        2.获取用户请求体
+                        3.根据用户请求体和parser_classes = [JSONParser,]中支持的请求头进行比较
+                        4.JSONParser对象处理请求体
+                        5.request.data来触发的
+                    """
+                    print(request.data)
+                    return  HttpResponse('ParserView')
+                    
+            2.3、想实现上传功能的话，局部视图配置
+            
+                parser_classes = [FileUploadParser]
+                然后取文件：
+                    request.FILES
+        
+        3、源码流程&本质：
+        
+            3.1、本质
+            
+                请求体
+                状态码
+                请求方法
+                
+            3.2、源码流程
+            
+                --dispath:request封装
+                --request.data
 
-                    users = UserInfo.objects.all()
-                    ser = UserInfoSerializer(instance=users, many=True, context={'request': request})
-                    # print(ser.data)
-                    ret = json.dumps(ser.data, ensure_ascii=False)
-                    return HttpResponse(ret)
-        1.5、源码流程
-            对象，Serializer类处理
-            QuerySet，ListSerializer类处理
-            # ser.data是入口
-    2、请求数据校验
-        class XXXValidator(object):
-            def __init__(self, base):
-                self.base = base
+## 六、序列化
 
-            def __call__(self, value):
-                if not value.startswith(self.base):
-                    message = '名称必须以 %s 开头' % self.base
-                    raise serializers.ValidationError(message)
+        1、序列化：
+        
+            1.1、写类，继承于Serializer(自定义生成字段)、ModelSerializer(自动生成字段，也是继承于Serializer)
+            
+            1.2、字段：
+                
+                1.2.1、name=serializers.CharField(source="xxx.xx.xx")
+                
+                1.2.2、roles = serializers.SerializerMethodField()  # 自定义显示
+    
+                        class UserInfoSerializer(serializers.ModelSerializer):
+                            roles = serializers.SerializerMethodField()  # 字段自定义显示
+                            class Meta:
+                                model = UserInfo
+                                # fields = "__all__"
+                                fields = ['id', 'username', 'password', 'xxx', 'roles', 'group']
+        
+                            def get_roles(self, row):
+                                role_obj_list = row.roles.all()
+                                ret = []
+                                for item in role_obj_list:
+                                    ret.append({'id':item.id, 'name':item.name})
+                                return ret
+                
+                1.2.3、自定义字段类不常用
+                
+            1.3、自动化序列化连表
+                
+                class UserInfoSerializer(serializers.ModelSerializer):
+                    class Meta:
+                        model = UserInfo
+                        fields = "__all__"
+                        # fields = ['id', 'username', 'password', 'xxx', 'roles', 'group']
+                        depth = 1  # 官方建议0~10，尽量不要超过3层
+            
+            1.4、生成链接
+                
+                class UserInfoSerializer(serializers.ModelSerializer):
+                    group = serializers.HyperlinkedIdentityField(view_name='group', lookup_field='group_id', lookup_url_kwarg='pk')
+    
+                    class Meta:
+                        model = UserInfo
+                        fields = "__all__"
+                        fields = ['id', 'username', 'password', 'roles', 'group']
+                        depth = 0  # 官方建议0~10，尽量不要超过3层
+    
+                class UserInfoView(APIView):
+                    """用户中心（普通用户，vip）"""
+                    # authentication_classes = [Authentication, ]
+                    # 当前permission_classes存在就不会去取配置文件里的设置
+                    permission_classes = [VipPermission, ]
+    
+                    def get(self, request, *args, **kwargs):
+    
+                        users = UserInfo.objects.all()
+                        ser = UserInfoSerializer(instance=users, many=True, context={'request': request})
+                        # print(ser.data)
+                        ret = json.dumps(ser.data, ensure_ascii=False)
+                        return HttpResponse(ret)
+            
+            1.5、源码流程
+                
+                单个结果，对象使用Serializer类处理
+                多个结果，QuerySet，ListSerializer类处理
+                # ser.data是入口
+        
+        2、请求数据校验
+            
+            class XXXValidator(object):
+                def __init__(self, base):
+                    self.base = base
+    
+                def __call__(self, value):
+                    if not value.startswith(self.base):
+                        message = '名称必须以 %s 开头' % self.base
+                        raise serializers.ValidationError(message)
+    
+            class UserGroupSerializer(serializers.Serializer):
+                name = serializers.CharField(error_messages={'required': '姓名不能为空'}, validators=[XXXValidator('nzb'),])
+    
+            class UserGroupView(APIView):
+    
+                authentication_classes = []
+                permission_classes = []
+    
+                def post(self, request, *args, **kwargs):
+    
+                    # print(request.data)
+                    ser = UserGroupSerializer(data=request.data)
+                    if ser.is_valid():
+                        # 取数据
+                        print(ser.validated_data)
+                        # 单独取某些
+                        print(ser.validated_data['name'])
+                    else:
+                        print(ser.errors)
+                    return HttpResponse('提交数据')
 
-        class UserGroupSerializer(serializers.Serializer):
-            name = serializers.CharField(error_messages={'required': '姓名不能为空'}, validators=[XXXValidator('nzb'),])
-
-        class UserGroupView(APIView):
-
-            authentication_classes = []
-            permission_classes = []
-
-            def post(self, request, *args, **kwargs):
-
-                # print(request.data)
-                ser = UserGroupSerializer(data=request.data)
-                if ser.is_valid():
-                    print(ser.validated_data)
-                    # 单独取某些
-                    print(ser.validated_data['name'])
-                else:
-                    print(ser.errors)
-                return HttpResponse('提交数据')
-
-六、分页
+## 七、分页
 
     数据量大时，怎么规避，1、只显示200页，2、只有上一页和下一页
     1、分页，看第几页，每页显示n条数据；
