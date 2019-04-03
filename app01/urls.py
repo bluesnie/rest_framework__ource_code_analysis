@@ -35,14 +35,16 @@ urlpatterns = [
     #
     # # 翻页
     # re_path('(?P<version>[v1|v2]+)/pager1/', views.Pager1View.as_view(), name='pager1'),
-    # # 视图
+    # # 视图1
     # # re_path('(?P<version>[v1|v2]+)/v1/', views.View1View.as_view(), name='view1'),
-    #
+
     # # http://127.0.0.1:8000/api01/v1/v1/
     # re_path('(?P<version>[v1|v2]+)/v1/$', views.View1View.as_view({'get': 'list', 'post':'create'}), name='view1'),
+
     # # http://127.0.0.1:8000/api01/v1/v1.json
     # re_path('(?P<version>[v1|v2]+)/v1\.(?P<format>\w+)$', views.View1View.as_view({'get': 'list', 'post':'create'}), name='view1'),
-    #
+
+    #  #视图2，列表和增加不用id，更新，删除，查单个数据都需要id，所以需要两个url
     # re_path('(?P<version>[v1|v2]+)/v1/(?P<pk>\d+)$', views.View1View.as_view({'get': 'retrieve', 'delete':'destroy', 'put': 'update', 'patch': 'partial_update'}), name='view1'),
     # re_path('(?P<version>[v1|v2]+)/v1/(?P<pk>\d+)\.(?P<format>\w+)', views.View1View.as_view({'get': 'retrieve','delete':'destroy','put': 'update','patch': 'partial_update'}), name='view1'),
 

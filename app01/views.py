@@ -1,7 +1,6 @@
 import json
 
 from django.contrib import auth
-
 from rest_framework.authentication import BaseAuthentication
 from django.shortcuts import render
 from django.views import View
@@ -400,7 +399,7 @@ class UserInfoView(APIView):
 
 
 # 使用ModelSerializer类
-class GroupSerializer(serializers.ModelSerializer):
+class GroupSerializer(serializers.ModelSe rializer):
     class Meta:
         model = UserGroup
         fields = "__all__"
@@ -433,13 +432,19 @@ class XXXValidator(object):
 
 class UserGroupSerializer(serializers.Serializer):
     name = serializers.CharField(error_messages={'required': '姓名不能为空'}, validators=[XXXValidator('nzb'), ])
+    title = ....
 
     def validate_name(self, value):
         from rest_framework import exceptions
-        # 自定义验证规则，然后抛出异常
+        # 自定义验证规则，然后抛出异常, 要么返回值，要么报错
+        # 1.
         raise exceptions.ValidationError('看你不顺眼')
         # print(value)
+        # 2.
         return value
+
+    def validate_title(self, value):
+        pass
 
 
 class UserGroupView(APIView):
@@ -460,9 +465,7 @@ class UserGroupView(APIView):
             print(ser.errors)
         return HttpResponse('提交数据')
 
-
 #分页
-
 from app01.utils.serializers.pager import PagerSerializer
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination, CursorPagination
@@ -471,6 +474,7 @@ from rest_framework.pagination import PageNumberPagination, LimitOffsetPaginatio
 # class MyPagination(PageNumberPagination):
 #     # 自定义分页类
 #     page_size = 2
+#     page_query_param = 'page'
 #     page_size_query_param = 'size'
 #     max_page_size = 5
 
@@ -506,18 +510,25 @@ class Pager1View(APIView):
         # ret = json.dumps(ser.data, ensure_ascii=False)
         # return HttpResponse(ret)
 
-        # rest_framework 渲染
         # 创建分页对象
         pg = MyPagination()
+
         # 在数据中获取分页的数据
         pager_roles = pg.paginate_queryset(queryset=roles, request=request, view=self)
+
         # 对数据进行序列化
         ser = PagerSerializer(instance=pager_roles, many=True)
 
+        # rest_framework 渲染,返回渲染界面
         # return Response(ser.data)
         # 生成上一页下一页链接(加密分页很有用)
         return pg.get_paginated_response(ser.data)
 
+# 第一种视图
+# 继承Django原生的View
+
+# 第二种视图
+# 继承APIView
 
 # 第三种视图
 # from app01.utils.serializers.pager import PagerSerializer
@@ -525,11 +536,12 @@ class Pager1View(APIView):
 #
 #
 # class View1View(GenericAPIView):
-#     queryset = Role.objects.all()
-#     serializer_class = PagerSerializer
-#     pagination_class = PageNumberPagination
-#     authentication_classes = []
-#     permission_classes = []
+    # 继承GenericAPIView需要queryset相当于上面的roles
+    # queryset = Role.objects.all()
+    # serializer_class = PagerSerializer
+    # pagination_class = PageNumberPagination
+    # authentication_classes = []
+    # permission_classes = []
 #
 #     def get(self, request, *args, **kwargs):
 #
@@ -542,10 +554,9 @@ class Pager1View(APIView):
 #
 #         return Response(ser.data)
 
-
 # 第四种视图
 # from app01.utils.serializers.pager import PagerSerializer
-# from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import GenericViewSet
 #
 #
 # class View1View(GenericViewSet):
@@ -566,18 +577,24 @@ class Pager1View(APIView):
 #
 #         return Response(ser.data)
 
-
 # 第五种视图
 from app01.utils.serializers.pager import PagerSerializer
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework.mixins import ListModelMixin, CreateModelMixin
+class View1View(ModelViewSet):
+    authentication_classes = []
+    permission_classes = []
+
+    queryset = Role.objects.all()
+    serializer_class = PagerSerializer
+    pagination_class = PageNumberPagination
+
 
 # 渲染器
 
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer, AdminRenderer, HTMLFormRenderer
 
 # class View1View(ListModelMixin,GenericViewSet,CreateModelMixin):
-
 
 class View1View(ModelViewSet):
     # 渲染器,使用JSONRenderer就行，BrowsableAPIRenderer只是界面好看
