@@ -48,6 +48,8 @@ urlpatterns = [
     # re_path('(?P<version>[v1|v2]+)/v1/(?P<pk>\d+)$', views.View1View.as_view({'get': 'retrieve', 'delete':'destroy', 'put': 'update', 'patch': 'partial_update'}), name='view1'),
     # re_path('(?P<version>[v1|v2]+)/v1/(?P<pk>\d+)\.(?P<format>\w+)', views.View1View.as_view({'get': 'retrieve','delete':'destroy','put': 'update','patch': 'partial_update'}), name='view1'),
 
+    # content-type
+    path('test/', views.test),
     # rest_framework路由
     re_path('(?P<version>[v1|v2]+)/', include(router.urls))
 ]

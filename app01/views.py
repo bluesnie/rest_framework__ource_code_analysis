@@ -399,7 +399,7 @@ class UserInfoView(APIView):
 
 
 # 使用ModelSerializer类
-class GroupSerializer(serializers.ModelSe rializer):
+class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserGroup
         fields = "__all__"
@@ -432,7 +432,7 @@ class XXXValidator(object):
 
 class UserGroupSerializer(serializers.Serializer):
     name = serializers.CharField(error_messages={'required': '姓名不能为空'}, validators=[XXXValidator('nzb'), ])
-    title = ....
+    # title = ....
 
     def validate_name(self, value):
         from rest_framework import exceptions
@@ -556,7 +556,7 @@ class Pager1View(APIView):
 
 # 第四种视图
 # from app01.utils.serializers.pager import PagerSerializer
-from rest_framework.viewsets import GenericViewSet
+# from rest_framework.viewsets import GenericViewSet
 #
 #
 # class View1View(GenericViewSet):
@@ -607,3 +607,27 @@ class View1View(ModelViewSet):
     serializer_class = PagerSerializer
     pagination_class = PageNumberPagination
 
+
+# Content-Type
+def test(request):
+    # 插入一条价格策略,为学位课“Python”添加一个价格策略：一个月9.9
+
+    # # 1、最基本的操作
+    # obj = DegreeCourse.objects.filter(name='Python').first()
+    # # obj.id
+    # cobj = ContentType.objects.filter(model='degreecourse').first()
+    # # cobj.id
+    # PricePolicy.objects.create(price=9.9, period=30, table_name_id=cobj.id, object_id=obj.id)
+
+    # 2、加一个字段后，使用content-type
+    from .models import DegreeCourse, PricePolicy
+
+    # obj = DegreeCourse.objects.filter(name='Python').first()
+    # PricePolicy.objects.create(price=9.9, period=30, content_object=obj)
+
+    # 3、根据课程ID找到课程，并获取所有的价格策略
+    course = DegreeCourse.objects.filter(id=1).first()
+    price_policy = course.price_policy_list.all()
+    print(price_policy)
+
+    return HttpResponse('插入成功')

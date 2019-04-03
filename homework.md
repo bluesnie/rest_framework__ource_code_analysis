@@ -35,7 +35,6 @@
                 
     
 # Django的rest_framework：
-
 ## 中间件
 
         1、最多几个方法：
@@ -142,7 +141,6 @@
             5.1、如何验证（基于数据库实现用户认证）
             5.2、源码流程（面向对象回顾流程）
 
-
 # restful api设计（规范，建议）
 
         1、API与用户的通信协议，总是使用HTTPs协议（推荐使用）。
@@ -211,7 +209,6 @@
             }}
         
 # Django-Rest-framework组件
-
 ## 一、认证
 
         1、使用
@@ -741,75 +738,140 @@
 
 ## 九、路由
 
-    1、
-        re_path('(?P<version>[v1|v2]+)/auth/', views.AuthView.as_view(), name='auth'),
-    2、
-        re_path('(?P<version>[v1|v2]+)/v1/$', views.View1View.as_view({'get': 'list', 'post':'create'}), name='view1'),
-    3、
-        # http://127.0.0.1:8000/api01/v1/v1/
-        re_path('(?P<version>[v1|v2]+)/v1/$', views.View1View.as_view({'get': 'list', 'post':'create'}), name='view1'),
-        # http://127.0.0.1:8000/api01/v1/v1.json
-        re_path('(?P<version>[v1|v2]+)/v1\.(?P<format>\w+)$', views.View1View.as_view({'get': 'list', 'post':'create'}), name='view1'),
-        re_path('(?P<version>[v1|v2]+)/v1/(?P<pk>\d+)$', views.View1View.as_view({'get': 'retrieve', 'delete':'destroy', 'put': 'update', 'patch': 'partial_update'}), name='view1'),
-        re_path('(?P<version>[v1|v2]+)/v1/(?P<pk>\d+)\.(?P<format>\w+)', views.View1View.as_view({'get': 'retrieve','delete':'destroy','put': 'update','patch': 'partial_update'}), name='view1'),
-    4、
-        from app01 import views
-        from rest_framework import routers
-        # rest_framework路由
-        router = routers.DefaultRouter()
-        router.register(r'xxx', views.View1View)
-        router.register(r'rt', views.View1View)
-        urlpatterns = [
+        1、
+            re_path('(?P<version>[v1|v2]+)/auth/', views.AuthView.as_view(), name='auth'),
+        
+        2、
+            re_path('(?P<version>[v1|v2]+)/v1/$', views.View1View.as_view({'get': 'list', 'post':'create'}), name='view1'),
+        
+        3、
+            # http://127.0.0.1:8000/api01/v1/v1/
+            re_path('(?P<version>[v1|v2]+)/v1/$', views.View1View.as_view({'get': 'list', 'post':'create'}), name='view1'),
+           
+            # http://127.0.0.1:8000/api01/v1/v1.json
+            re_path('(?P<version>[v1|v2]+)/v1\.(?P<format>\w+)$', views.View1View.as_view({'get': 'list', 'post':'create'}), name='view1'),
+            
+            re_path('(?P<version>[v1|v2]+)/v1/(?P<pk>\d+)$', views.View1View.as_view({'get': 'retrieve', 'delete':'destroy', 'put': 'update', 'patch': 'partial_update'}), name='view1'),
+            re_path('(?P<version>[v1|v2]+)/v1/(?P<pk>\d+)\.(?P<format>\w+)', views.View1View.as_view({'get': 'retrieve','delete':'destroy','put': 'update','patch': 'partial_update'}), name='view1'),
+        
+        4、自动生成路由
+            from app01 import views
+            from rest_framework import routers
             # rest_framework路由
-            re_path('(?P<version>[v1|v2]+)/', include(router.urls))
-        ]
-    
-九、渲染器
-    from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer, AdminRenderer, HTMLFormRenderer
-    # class View1View(ListModelMixin,GenericViewSet,CreateModelMixin):
-    class View1View(ModelViewSet):
-        # 渲染器,使用JSONRenderer就行，BrowsableAPIRenderer只是界面好看
-        # renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
-        authentication_classes = []
-        permission_classes = []
-        queryset = Role.objects.all()
-        serializer_class = PagerSerializer
-        pagination_class = PageNumberPagination
-    全局配置：
-        'DEFAULT_RENDERER_CLASSES':['rest_framework.renderers.JSONRenderer','rest_framework.renderers.BrowsableAPIRenderer']
+            router = routers.DefaultRouter()
+            router.register(r'xxx', views.View1View)
+            router.register(r'rt', views.View1View)
+            urlpatterns = [
+                # rest_framework路由
+                re_path('(?P<version>[v1|v2]+)/', include(router.urls))
+            ]     
 
+## 十、渲染器
 
-十、django组件：contenttype
+        from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer, AdminRenderer, HTMLFormRenderer
+        # class View1View(ListModelMixin,GenericViewSet,CreateModelMixin):
+        class View1View(ModelViewSet):
+            # 渲染器,使用JSONRenderer就行，BrowsableAPIRenderer只是界面好看
+            # renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
+            authentication_classes = []
+            permission_classes = []
+            queryset = Role.objects.all()
+            serializer_class = PagerSerializer
+            pagination_class = PageNumberPagination
+        全局配置：
+            'DEFAULT_RENDERER_CLASSES':['rest_framework.renderers.JSONRenderer','rest_framework.renderers.BrowsableAPIRenderer']
 
-
-十一、理清视图继承流程
-
-__init__和__new__的区别：
-__new__：是返回对象
-__init__：是__new__返回的对象的构造方法
-
-
-例：
-
-    class Foo(object):
-        def __init__(self, a1):
-            print(a1)
-            self.a = a1
+## 十一、django组件：content-type
+        
+        Django内置的一个组件，帮助开发者做连表操作。【混搭】
+        models里定义的时候，实现一表对多表操作
+        
+        例：
+            # 利用content-type实现一表对应多表
             
-        def __new__(cls, *args, **kwargs):
-            """
-            1.根据类创建对象，并返回
-            2.执行返回值的__init__
-            """
+            # models.py
             
-            # 如果返回的是nzb字符串，则执行字符串的构造方法__init__,上面__init__里面的输出a1为nzb(因为字符串没有构造方法)
-            return 'nzb'
+                class Course(models.Model):
+                    """
+                    普通课程
+                    """
+                    name = models.CharField(max_length=32)
+                
+                    # 仅用于反向查找
+                    price_policy_list = GenericRelation('PricePolicy')
+                
+                
+                class DegreeCourse(models.Model):
+                    """
+                    学位课程
+                    """
+                    name = models.CharField(max_length=32)
+                    # 仅用于反向查找
+                    price_policy_list = GenericRelation('PricePolicy')
+                
+                
+                class PricePolicy(models.Model):
+                    """价格策略"""
+                    price = models.IntegerField()
+                    period = models.IntegerField()
+                
+                    # 自定义
+                    # table_name = models.CharField(verbose_name=u'关联的表名称')
+                    # object_id = models.CharField(verbose_name=u'关联表中的数据id')
+                
+                    # 使用Django的组件content-type
+                    content_type = models.ForeignKey(ContentType, verbose_name=u'关联普通可或学位课表', on_delete=models.CASCADE)  # 11、12就是上面两个表
+                    object_id = models.IntegerField(verbose_name=u'关联表中的数据id')
+                
+                    # 帮助你快速实现content-type操作
+                    content_object = GenericForeignKey('content_type', 'object_id')
             
-            # 默认,实例化当前类的对象返回, 然后去执行构造方法
-            return object.__new__(cls)
+            # 视图view里面的逻辑, views.py:
             
-    obj = Foo(123)
-    print(obj)
+                # 插入一条价格策略,为学位课“Python”添加一个价格策略：一个月9.9
+               
+                # 1、加一个字段后，使用content-type
+                # obj = DegreeCourse.objects.filter(name='Python').first()
+                # PricePolicy.objects.create(price=9.9, period=30, content_object=obj)
+                
+                # 2、根据课程ID找到课程，并获取所有的价格策略
+                # course = DegreeCourse.objects.filter(id=1).first()
+                # price_policy = course.price_policy_list.all()
+
+# 十二、小知识点
+
+        1、前后端分离如何解决跨域
+            --jsonp
+            --cors
+                -响应头放在中间件
+            
+        2、__init__和__new__的区别：
+        
+            __new__：是返回对象
+            __init__：是__new__返回的对象的构造方法
+            
+            
+            例：
+            
+                class Foo(object):
+                    def __init__(self, a1):
+                        print(a1)
+                        self.a = a1
+                        
+                    def __new__(cls, *args, **kwargs):
+                        """
+                        1.根据类创建对象，并返回
+                        2.执行返回值的__init__
+                        """
+                        
+                        # 如果返回的是nzb字符串，则执行字符串的构造方法__init__,上面__init__里面的输出a1为nzb(因为字符串没有构造方法)
+                        return 'nzb'
+                        
+                        # 默认,实例化当前类的对象返回, 然后去执行构造方法
+                        return object.__new__(cls)
+                        
+                obj = Foo(123)
+                print(obj)
 
 
 
